@@ -20,7 +20,7 @@ import Schedules from "../Schedules/Schedules";
 import Kanban from "../Kanban/Kanban";
 import RemoteNotice from "../../components/RemoteNotice";
 import VerifyWarningBanner from "../../components/VerifyWarningBanner";
-import hermeslogo from "../../assets/hermes-one.svg";
+import athenalogo from "../../assets/athena-q.svg";
 import {
   ChatBubble,
   Clock,
@@ -76,7 +76,7 @@ const NAV_ITEMS: { view: View; icon: LucideIcon; labelKey: string }[] = [
   { view: "settings", icon: SettingsIcon, labelKey: "navigation.settings" },
 ];
 
-const SIDEBAR_COLLAPSED_KEY = "hermes.sidebar.collapsed";
+const SIDEBAR_COLLAPSED_KEY = "athena.sidebar.collapsed";
 
 interface LayoutProps {
   verifyWarning?: boolean;
@@ -137,15 +137,15 @@ function Layout({
 
   // Re-check remote mode on tab switch (picks up Settings changes)
   useEffect(() => {
-    window.hermesAPI.isRemoteOnlyMode().then(setRemoteMode);
+    window.athenaAPI.isRemoteOnlyMode().then(setRemoteMode);
   }, [view]);
 
   // Restore the last-activated profile on launch. The main process persists it
-  // in ~/.hermes/active_profile (via `hermes profile use`), so the desktop
+  // in ~/.cortex/active_profile (via `athena profile use`), so the desktop
   // should reopen on that profile rather than always resetting to "default".
   useEffect(() => {
     let cancelled = false;
-    window.hermesAPI
+    window.athenaAPI
       .listProfiles()
       .then((profiles) => {
         if (cancelled) return;
@@ -169,22 +169,22 @@ function Layout({
   const [updateError, setUpdateError] = useState<string | null>(null);
 
   useEffect(() => {
-    const cleanupAvailable = window.hermesAPI.onUpdateAvailable((info) => {
+    const cleanupAvailable = window.athenaAPI.onUpdateAvailable((info) => {
       setUpdateVersion(info.version);
       setUpdateState("available");
       setUpdateError(null);
       setDownloadPercent(0);
     });
-    const cleanupProgress = window.hermesAPI.onUpdateDownloadProgress(
+    const cleanupProgress = window.athenaAPI.onUpdateDownloadProgress(
       (info) => {
         setDownloadPercent(info.percent);
       },
     );
-    const cleanupDownloaded = window.hermesAPI.onUpdateDownloaded(() => {
+    const cleanupDownloaded = window.athenaAPI.onUpdateDownloaded(() => {
       setUpdateState("ready");
       setUpdateError(null);
     });
-    const cleanupError = window.hermesAPI.onUpdateError((message) => {
+    const cleanupError = window.athenaAPI.onUpdateError((message) => {
       setUpdateState("error");
       setUpdateError(message);
       setDownloadPercent(0);
@@ -203,14 +203,14 @@ function Layout({
       setDownloadPercent(0);
       setUpdateState("downloading");
       try {
-        const ok = await window.hermesAPI.downloadUpdate();
+        const ok = await window.athenaAPI.downloadUpdate();
         if (!ok) setUpdateState("error");
       } catch (err) {
         setUpdateError(err instanceof Error ? err.message : String(err));
         setUpdateState("error");
       }
     } else if (updateState === "ready") {
-      await window.hermesAPI.installUpdate();
+      await window.athenaAPI.installUpdate();
     }
   }
 
@@ -228,7 +228,7 @@ function Layout({
 
   const handleNewChat = useCallback(() => {
     // Abort any in-flight chat before clearing
-    window.hermesAPI.abortChat();
+    window.athenaAPI.abortChat();
     setMessages([]);
     setCurrentSessionId(null);
     goTo("chat");
@@ -236,10 +236,10 @@ function Layout({
 
   // Listen for menu IPC events (Cmd+N, Cmd+K from app menu)
   useEffect(() => {
-    const cleanupNewChat = window.hermesAPI.onMenuNewChat(() => {
+    const cleanupNewChat = window.athenaAPI.onMenuNewChat(() => {
       handleNewChat();
     });
-    const cleanupSearch = window.hermesAPI.onMenuSearchSessions(() => {
+    const cleanupSearch = window.athenaAPI.onMenuSearchSessions(() => {
       goTo("sessions");
     });
     return () => {
@@ -256,7 +256,7 @@ function Layout({
 
   const handleResumeSession = useCallback(
     async (sessionId: string) => {
-      const items = (await window.hermesAPI.getSessionMessages(
+      const items = (await window.athenaAPI.getSessionMessages(
         sessionId,
       )) as DbHistoryItem[];
       setMessages(dbItemsToChatMessages(items));
@@ -289,10 +289,10 @@ function Layout({
           <span
             className="sidebar-logo"
             role="img"
-            aria-label="Hermes"
+            aria-label="Athena"
             style={{
-              maskImage: `url(${hermeslogo})`,
-              WebkitMaskImage: `url(${hermeslogo})`,
+              maskImage: `url(${athenalogo})`,
+              WebkitMaskImage: `url(${athenalogo})`,
             }}
           />
           <button

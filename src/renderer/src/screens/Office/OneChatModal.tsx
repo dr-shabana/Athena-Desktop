@@ -53,7 +53,7 @@ export default function OneChatModal({
     let cancelled = false;
     (async (): Promise<void> => {
       try {
-        const items = (await window.hermesAPI.getSessionMessages(
+        const items = (await window.athenaAPI.getSessionMessages(
           sessionId,
         )) as Array<{
           kind: "user" | "assistant";
@@ -132,14 +132,14 @@ export default function OneChatModal({
       const history = (messages[selectedAgentId] ?? [])
         .filter((m) => m.role === "user" || m.role === "agent")
         .map((m) => ({ role: m.role, content: m.text }));
-      await window.hermesAPI.sendMessage(
+      await window.athenaAPI.sendMessage(
         text,
         selectedAgentId,
         sessionId,
         history,
       );
       // Reload persisted messages from the session
-      const items = (await window.hermesAPI.getSessionMessages(
+      const items = (await window.athenaAPI.getSessionMessages(
         sessionId,
       )) as Array<{
         kind: "user" | "assistant";
@@ -160,7 +160,7 @@ export default function OneChatModal({
       // Try to reload from the database before showing a raw error.
       try {
         const reloadSessionId = `office-${selectedAgentId}`;
-        const items = (await window.hermesAPI.getSessionMessages(
+        const items = (await window.athenaAPI.getSessionMessages(
           reloadSessionId,
         )) as Array<{
           kind: "user" | "assistant";

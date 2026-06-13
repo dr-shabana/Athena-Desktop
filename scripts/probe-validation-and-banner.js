@@ -10,7 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-const ENV_FILE = path.join(os.homedir(), "AppData", "Local", "hermes", ".env");
+const ENV_FILE = path.join(os.homedir(), "AppData", "Local", "athena", ".env");
 const ENV_BACKUP = ENV_FILE + ".probe-validation-bk";
 
 function readEnvKeys() {
@@ -27,7 +27,7 @@ function readEnvKeys() {
 
   // --- A. Happy path: validateChatReadiness should be OK as-configured ---
   const okState = await page.evaluate(async () => {
-    return await window.hermesAPI.validateChatReadiness();
+    return await window.athenaAPI.validateChatReadiness();
   });
   console.log("[A] happy path validateChatReadiness:", JSON.stringify(okState));
 
@@ -41,7 +41,7 @@ function readEnvKeys() {
     os.homedir(),
     "AppData",
     "Local",
-    "hermes",
+    "athena",
     "auth.json",
   );
   const AUTH_BACKUP = AUTH + ".probe-validation-auth-bk";
@@ -61,17 +61,17 @@ function readEnvKeys() {
   // unsetting some random key, OR just wait — but easier to flip it via
   // setEnv which invalidates the cache.
   await page.evaluate(async () => {
-    await window.hermesAPI.setEnv("__VALIDATION_PROBE__", String(Date.now()));
+    await window.athenaAPI.setEnv("__VALIDATION_PROBE__", String(Date.now()));
   });
   // Now call validation again
   const blockedState = await page.evaluate(async () => {
-    return await window.hermesAPI.validateChatReadiness();
+    return await window.athenaAPI.validateChatReadiness();
   });
   console.log("[B] missing-key validateChatReadiness:", JSON.stringify(blockedState));
 
   // --- C. Config-health audit: should report MODEL_KEY_MISSING + maybe more ---
   const health = await page.evaluate(async () => {
-    return await window.hermesAPI.getConfigHealth();
+    return await window.athenaAPI.getConfigHealth();
   });
   console.log("[C] config-health summary:", JSON.stringify(health.summary));
   console.log("[C] issue codes:", health.issues.map((i) => `${i.severity}:${i.code}`).join(", "));
@@ -85,7 +85,7 @@ function readEnvKeys() {
   }
   // Clean up the marker we set
   await page.evaluate(async () => {
-    await window.hermesAPI.setEnv("__VALIDATION_PROBE__", "");
+    await window.athenaAPI.setEnv("__VALIDATION_PROBE__", "");
   });
   console.log("[teardown] .env + auth.json restored");
 

@@ -14,10 +14,10 @@ describe("parseSseBlock", () => {
   });
 
   it("parses an SSE block with event + data", () => {
-    const block = 'event: hermes.tool.progress\ndata: {"tool":"search"}';
+    const block = 'event: athena.tool.progress\ndata: {"tool":"search"}';
     const result = parseSseBlock(block);
     expect(result).toEqual({
-      eventType: "hermes.tool.progress",
+      eventType: "athena.tool.progress",
       data: '{"tool":"search"}',
     });
   });
@@ -34,9 +34,9 @@ describe("parseSseBlock", () => {
   });
 
   it("handles extra whitespace in event type", () => {
-    const result = parseSseBlock("event:  hermes.tool.progress \ndata: {}");
+    const result = parseSseBlock("event:  athena.tool.progress \ndata: {}");
     expect(result).toEqual({
-      eventType: "hermes.tool.progress",
+      eventType: "athena.tool.progress",
       data: "{}",
     });
   });
@@ -45,11 +45,11 @@ describe("parseSseBlock", () => {
 // ─── processCustomEvent ─────────────────────────────────
 
 describe("processCustomEvent", () => {
-  it("handles hermes.tool.progress with emoji and label", () => {
+  it("handles athena.tool.progress with emoji and label", () => {
     const onToolProgress = vi.fn();
     const onToolEvent = vi.fn();
     const handled = processCustomEvent(
-      "hermes.tool.progress",
+      "athena.tool.progress",
       JSON.stringify({
         tool: "search_web",
         toolCallId: "call-1",
@@ -71,10 +71,10 @@ describe("processCustomEvent", () => {
     });
   });
 
-  it("handles completed hermes.tool.progress as a structured tool event", () => {
+  it("handles completed athena.tool.progress as a structured tool event", () => {
     const onToolEvent = vi.fn();
     const handled = processCustomEvent(
-      "hermes.tool.progress",
+      "athena.tool.progress",
       JSON.stringify({
         tool: "terminal",
         toolCallId: "call-terminal",
@@ -95,7 +95,7 @@ describe("processCustomEvent", () => {
   it("marks fallback tool ids as synthetic when the gateway omits call ids", () => {
     const onToolEvent = vi.fn();
     processCustomEvent(
-      "hermes.tool.progress",
+      "athena.tool.progress",
       JSON.stringify({
         tool: "terminal",
         status: "running",
@@ -115,7 +115,7 @@ describe("processCustomEvent", () => {
   it("uses tool name as fallback when label is missing", () => {
     const onToolProgress = vi.fn();
     processCustomEvent(
-      "hermes.tool.progress",
+      "athena.tool.progress",
       JSON.stringify({ tool: "read_file", emoji: "📄" }),
       { onToolProgress },
     );
@@ -125,7 +125,7 @@ describe("processCustomEvent", () => {
   it("handles missing emoji gracefully", () => {
     const onToolProgress = vi.fn();
     processCustomEvent(
-      "hermes.tool.progress",
+      "athena.tool.progress",
       JSON.stringify({ tool: "terminal", label: "Running command" }),
       { onToolProgress },
     );
@@ -143,7 +143,7 @@ describe("processCustomEvent", () => {
 
   it("ignores malformed JSON data", () => {
     const onToolProgress = vi.fn();
-    const handled = processCustomEvent("hermes.tool.progress", "not-json", {
+    const handled = processCustomEvent("athena.tool.progress", "not-json", {
       onToolProgress,
     });
     expect(handled).toBe(false);
@@ -152,7 +152,7 @@ describe("processCustomEvent", () => {
 
   it("does nothing when onToolProgress callback is absent", () => {
     const handled = processCustomEvent(
-      "hermes.tool.progress",
+      "athena.tool.progress",
       JSON.stringify({ tool: "x" }),
       {},
     );

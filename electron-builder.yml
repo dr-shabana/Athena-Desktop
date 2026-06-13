@@ -1,5 +1,5 @@
-appId: com.nousresearch.hermes
-productName: Hermes One
+appId: com.dr-shabana.athena-q
+productName: Athena Q
 directories:
   buildResources: build
 files:
@@ -13,7 +13,7 @@ asarUnpack:
   - resources/**
   - node_modules/better-sqlite3/build/Release/*.node
 win:
-  executableName: hermes-agent
+  executableName: athena-agent
   target:
     - nsis
     - portable
@@ -47,13 +47,13 @@ linux:
     - snap
     - deb
     - rpm
-  maintainer: electronjs.org
-  vendor: Nous Research
+  maintainer: dr-shabana
+  vendor: Dr. Shabana
   category: Utility
-  synopsis: Self-improving AI assistant desktop app
+  synopsis: Wisdom-guided AI agent desktop app
   description: >-
-    Hermes One is a native desktop app for installing, configuring, and chatting
-    with Hermes Agent — a self-improving AI assistant with tool use, multi-platform
+    Athena Q is a native desktop app for installing, configuring, and chatting
+    with Athena Agent — a wisdom-guided AI assistant with tool use, multi-platform
     messaging, and a closed learning loop.
 appImage:
   artifactName: ${name}-${version}.${ext}
@@ -69,5 +69,5 @@ rpm:
 npmRebuild: false
 publish:
   provider: github
-  owner: fathah
-  repo: hermes-desktop
+  owner: dr-shabana
+  repo: Athena-Desktop

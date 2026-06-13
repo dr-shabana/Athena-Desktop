@@ -7,7 +7,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
  *      that append `/v1/<path>` don't produce `/v1/v1/...` → 404.
  *
  *   2. `startGateway` and `restartGateway` refuse to spawn a local
- *      hermes-agent when the connection is in remote/SSH mode — the
+ *      athena-agent when the connection is in remote/SSH mode — the
  *      defensive net that catches IPC paths that don't explicitly gate
  *      on `isRemoteMode()`.
  */
@@ -19,7 +19,7 @@ const { TEST_HOME, connModeRef, sshTunnelUrlRef, sshLocalPortRef, spawnSpy } =
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const os = require("os");
     return {
-      TEST_HOME: path.join(os.tmpdir(), `hermes-remote-test-${Date.now()}`),
+      TEST_HOME: path.join(os.tmpdir(), `athena-remote-test-${Date.now()}`),
       connModeRef: { mode: "local" as "local" | "remote" | "ssh" },
       sshTunnelUrlRef: { value: "http://localhost:18642" as string | null },
       sshLocalPortRef: { value: 18642 as number | undefined },
@@ -32,10 +32,10 @@ const { TEST_HOME, connModeRef, sshTunnelUrlRef, sshLocalPortRef, spawnSpy } =
   });
 
 vi.mock("../src/main/installer", () => ({
-  HERMES_HOME: TEST_HOME,
-  HERMES_PYTHON: "/usr/bin/python3",
-  HERMES_REPO: "/dev/null",
-  hermesCliArgs: () => ["gateway"],
+  CORTEX_HOME: TEST_HOME,
+  CORTEX_PYTHON: "/usr/bin/python3",
+  CORTEX_REPO: "/dev/null",
+  athenaCliArgs: () => ["gateway"],
   getEnhancedPath: () => process.env.PATH || "",
 }));
 
@@ -99,7 +99,7 @@ import {
   restartGatewayViaCli,
   testRemoteConnection,
   contextFolderSystemMessage,
-} from "../src/main/hermes";
+} from "../src/main/athena";
 import http from "http";
 
 afterEach(() => {
@@ -270,7 +270,7 @@ describe("testRemoteConnection URL probe", () => {
     // Capture the URL handed to http.request by the health probe.
     // Reported in #266: stale code path was building
     // `http://host/v1/health` from a user-supplied `http://host/v1`,
-    // which 404s and produces the "Cannot reach remote Hermes" splash.
+    // which 404s and produces the "Cannot reach remote Athena" splash.
     let capturedTarget: string | undefined;
     const reqSpy = vi
       .spyOn(http, "request")

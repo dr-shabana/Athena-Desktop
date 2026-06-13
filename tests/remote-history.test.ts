@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 const ROOT = join(__dirname, "..");
-const hermesSrc = readFileSync(join(ROOT, "src/main/hermes.ts"), "utf-8");
+const athenaSrc = readFileSync(join(ROOT, "src/main/athena.ts"), "utf-8");
 
 function splitCallArgs(args: string): string[] {
   return args
@@ -19,21 +19,21 @@ function hasHistoryArg(args: string): boolean {
 }
 
 function extractExportedFunction(name: string): string {
-  const startMatch = hermesSrc.indexOf(`export async function ${name}(`);
+  const startMatch = athenaSrc.indexOf(`export async function ${name}(`);
   expect(startMatch).toBeGreaterThan(-1);
 
-  const remainingCode = hermesSrc.substring(startMatch);
+  const remainingCode = athenaSrc.substring(startMatch);
   const endMatch = remainingCode.indexOf("\nexport function ");
   return endMatch > 0 ? remainingCode.substring(0, endMatch) : remainingCode;
 }
 
 function extractLocalRecoveryFunction(): string {
-  const startMatch = hermesSrc.indexOf(
+  const startMatch = athenaSrc.indexOf(
     "async function sendMessageViaBestApiWithLocalRecovery(",
   );
   expect(startMatch).toBeGreaterThan(-1);
 
-  const remainingCode = hermesSrc.substring(startMatch);
+  const remainingCode = athenaSrc.substring(startMatch);
   const endMatch = remainingCode.indexOf("\nexport async function sendMessage(");
   expect(endMatch).toBeGreaterThan(-1);
 
@@ -50,7 +50,7 @@ function extractLocalRecoveryFunction(): string {
 describe("Remote/SSH Mode History Preservation", () => {
   it("sendMessage passes history to the API transport in remote mode", () => {
     // Extract the sendMessage function's remote mode branch
-    const remoteModeBranch = hermesSrc.match(
+    const remoteModeBranch = athenaSrc.match(
       /\/\/ Remote mode: always use API, no CLI fallback[\s\S]*?if \(isRemoteMode\(\)\) \{[\s\S]*?return sendMessageViaBestApi\([\s\S]*?\);[\s\S]*?\}/,
     );
 
@@ -79,7 +79,7 @@ describe("Remote/SSH Mode History Preservation", () => {
     // Extract sendMessageViaApi function body.  The content-type element is
     // intentionally not pinned to a literal — the type widened to a union
     // when multimodal support landed.
-    const funcMatch = hermesSrc.match(
+    const funcMatch = athenaSrc.match(
       /function sendMessageViaApi\([\s\S]*?\): ChatHandle \{[\s\S]*?const messages: Array<[\s\S]*?> = \[\];[\s\S]*?if \(history && history\.length > 0\) \{[\s\S]*?for \(const msg of history\) \{[\s\S]*?messages\.push\(\{[\s\S]*?role: msg\.role === "agent" \? "assistant" : msg\.role,[\s\S]*?content: msg\.content,[\s\S]*?\}\);[\s\S]*?\}[\s\S]*?\}[\s\S]*?messages\.push\(\{ role: "user", content: [^}]+\}\);/,
     );
 
@@ -107,7 +107,7 @@ describe("Remote/SSH Mode History Preservation", () => {
 
   it("local API available branch passes history to recovery wrapper", () => {
     // Extract the local API available branch
-    const localApiBranch = hermesSrc.match(
+    const localApiBranch = athenaSrc.match(
       /if \(apiServerAvailable\) \{[\s\S]*?return sendMessageViaBestApiWithLocalRecovery\([\s\S]*?\);[\s\S]*?\}/,
     );
 
@@ -163,7 +163,7 @@ describe("Remote/SSH Mode History Preservation", () => {
   });
 
   it("sendMessageViaBestApi forwards history through chat-completions fallback", () => {
-    const bestApiMatch = hermesSrc.match(
+    const bestApiMatch = athenaSrc.match(
       /async function sendMessageViaBestApi\([\s\S]*?\): Promise<ChatHandle> \{[\s\S]*?return sendMessageViaNonGatewayApi\(([\s\S]*?)\);[\s\S]*?\}/,
     );
 
@@ -178,7 +178,7 @@ describe("Remote/SSH Mode History Preservation", () => {
       bestApiParams.some((p) => p === "history" || p.includes("history")),
     ).toBe(true);
 
-    const nonGatewayMatch = hermesSrc.match(
+    const nonGatewayMatch = athenaSrc.match(
       /async function sendMessageViaNonGatewayApi\([\s\S]*?\): Promise<ChatHandle> \{[\s\S]*?return sendMessageViaApi\(([\s\S]*?)\);[\s\S]*?\}/,
     );
 

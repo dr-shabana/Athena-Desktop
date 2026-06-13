@@ -17,10 +17,10 @@ import https from "https";
 import net from "net";
 import WebSocket from "ws";
 import {
-  HERMES_HOME,
-  HERMES_REPO,
-  HERMES_PYTHON,
-  hermesCliArgs,
+  CORTEX_HOME,
+  CORTEX_REPO,
+  CORTEX_PYTHON,
+  athenaCliArgs,
   getEnhancedPath,
 } from "./installer";
 import {
@@ -59,8 +59,8 @@ import {
   parseRunSseBlock,
   runCompletedUsage,
   runEventReasoningText,
-  supportsHermesRunsTransport,
-  type HermesApiCapabilities,
+  supportsAthenaRunsTransport,
+  type AthenaApiCapabilities,
 } from "./run-stream";
 import {
   gatewayCompletionSuffix,
@@ -194,7 +194,7 @@ function capabilityCacheKey(profile?: string): string {
 
 async function getApiCapabilities(
   profile?: string,
-): Promise<HermesApiCapabilities | null> {
+): Promise<AthenaApiCapabilities | null> {
   let key: string;
   try {
     key = capabilityCacheKey(profile);
@@ -206,10 +206,10 @@ async function getApiCapabilities(
 
   const url = `${getApiUrl(profile)}/v1/capabilities`;
   const requester = url.startsWith("https") ? https : http;
-  const value = await new Promise<HermesApiCapabilities | null>((resolve) => {
+  const value = await new Promise<AthenaApiCapabilities | null>((resolve) => {
     let done = false;
     let timeout: NodeJS.Timeout | null = null;
-    const finish = (result: HermesApiCapabilities | null): void => {
+    const finish = (result: AthenaApiCapabilities | null): void => {
       if (done) return;
       done = true;
       if (timeout) clearTimeout(timeout);
@@ -233,7 +233,7 @@ async function getApiCapabilities(
             return;
           }
           try {
-            finish(JSON.parse(raw) as HermesApiCapabilities);
+            finish(JSON.parse(raw) as AthenaApiCapabilities);
           } catch {
             finish(null);
           }
@@ -402,7 +402,7 @@ function isDashboardReady(baseUrl: string, token: string): Promise<boolean> {
       `${baseUrl}/api/status`,
       {
         method: "GET",
-        headers: { "X-Hermes-Session-Token": token },
+        headers: { "X-Athena-Session-Token": token },
         timeout: 1500,
       },
       (res) => {
@@ -429,7 +429,7 @@ async function waitForDashboardReady(
     if (await isDashboardReady(baseUrl, token)) return;
     await delay(500);
   }
-  throw new Error("Hermes dashboard gateway did not become ready");
+  throw new Error("Athena dashboard gateway did not become ready");
 }
 
 class TuiGatewayClient {
@@ -472,14 +472,14 @@ class TuiGatewayClient {
   ): Promise<T> {
     await this.start();
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      throw new Error("Hermes dashboard gateway stream is not connected");
+      throw new Error("Athena dashboard gateway stream is not connected");
     }
 
     const id = `r${++this.nextId}`;
     return new Promise<T>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new Error(`Hermes gateway request timed out: ${method}`));
+        reject(new Error(`Athena gateway request timed out: ${method}`));
       }, timeoutMs);
       timer.unref?.();
       this.pending.set(id, {
@@ -521,7 +521,7 @@ class TuiGatewayClient {
   stop(): void {
     this.ws?.close();
     this.proc?.kill("SIGTERM");
-    this.rejectPending(new Error("Hermes dashboard gateway stream stopped"));
+    this.rejectPending(new Error("Athena dashboard gateway stream stopped"));
     this.reset();
   }
 
@@ -529,24 +529,24 @@ class TuiGatewayClient {
     if (!existsSync(tuiGatewayPython())) {
       throw new Error(`Python interpreter not found at ${tuiGatewayPython()}`);
     }
-    if (!existsSync(HERMES_REPO)) {
-      throw new Error(`hermes-agent repo not found at ${HERMES_REPO}`);
+    if (!existsSync(CORTEX_REPO)) {
+      throw new Error(`athena-agent repo not found at ${CORTEX_REPO}`);
     }
 
     this.port = await pickDashboardPort();
     this.token = randomUUID();
     const dashboardEnv = {
       ...this.env,
-      HERMES_DASHBOARD_SESSION_TOKEN: this.token,
-      HERMES_DASHBOARD_TUI: "1",
+      CORTEX_DASHBOARD_SESSION_TOKEN: this.token,
+      CORTEX_DASHBOARD_TUI: "1",
     };
-    // NB: no `--tui` flag here. It's a *global* hermes option (valid only
+    // NB: no `--tui` flag here. It's a *global* athena option (valid only
     // before a subcommand), not a `dashboard` subcommand option, so passing
     // `dashboard --tui` makes argparse exit 2 ("unrecognized arguments:
     // --tui") and the warmup fails. The JSON-RPC gateway this client talks to
-    // (`/api/ws`) is always served by a plain `hermes dashboard` and is gated
-    // only by HERMES_DASHBOARD_SESSION_TOKEN (set in `dashboardEnv`).
-    const args = hermesCliArgs([
+    // (`/api/ws`) is always served by a plain `athena dashboard` and is gated
+    // only by CORTEX_DASHBOARD_SESSION_TOKEN (set in `dashboardEnv`).
+    const args = athenaCliArgs([
       "dashboard",
       "--no-open",
       "--host",
@@ -555,7 +555,7 @@ class TuiGatewayClient {
       String(this.port),
     ]);
     const proc = spawn(tuiGatewayPython(), args, {
-      cwd: HERMES_REPO,
+      cwd: CORTEX_REPO,
       env: dashboardEnv,
       stdio: ["ignore", "pipe", "pipe"],
       ...HIDDEN_SUBPROCESS_OPTIONS,
@@ -567,7 +567,7 @@ class TuiGatewayClient {
       proc.once("exit", (code, signal) => {
         reject(
           new Error(
-            `Hermes dashboard gateway exited before ready (${signal || code})`,
+            `Athena dashboard gateway exited before ready (${signal || code})`,
           ),
         );
       });
@@ -597,7 +597,7 @@ class TuiGatewayClient {
     proc.removeAllListeners("exit");
     proc.once("exit", (code, signal) => {
       const error = new Error(
-        `Hermes dashboard gateway exited (${signal || code})`,
+        `Athena dashboard gateway exited (${signal || code})`,
       );
       this.rejectPending(error);
       this.reset();
@@ -609,7 +609,7 @@ class TuiGatewayClient {
       const ws = new WebSocket(url);
       this.ws = ws;
       const timer = setTimeout(() => {
-        reject(new Error("Hermes dashboard gateway WebSocket timed out"));
+        reject(new Error("Athena dashboard gateway WebSocket timed out"));
         ws.close();
       }, 15_000);
       timer.unref?.();
@@ -625,7 +625,7 @@ class TuiGatewayClient {
       });
       ws.on("close", () => {
         if (this.ws !== ws) return;
-        const error = new Error("Hermes dashboard gateway WebSocket closed");
+        const error = new Error("Athena dashboard gateway WebSocket closed");
         this.rejectPending(error);
         this.reset();
       });
@@ -646,7 +646,7 @@ class TuiGatewayClient {
       clearTimeout(pending.timer);
       this.pending.delete(String(frame.id));
       if (frame.error) {
-        pending.reject(new Error(frame.error.message || "Hermes RPC failed"));
+        pending.reject(new Error(frame.error.message || "Athena RPC failed"));
       } else {
         pending.resolve(frame.result);
       }
@@ -711,7 +711,7 @@ function waitForGatewayEvent(
     let cleanup = (): void => undefined;
     const timer = setTimeout(() => {
       cleanup();
-      reject(new Error("Timed out waiting for Hermes gateway readiness"));
+      reject(new Error("Timed out waiting for Athena gateway readiness"));
     }, timeoutMs);
     timer.unref?.();
     cleanup = client.onEvent((event) => {
@@ -735,10 +735,10 @@ function wsDataToString(
 const tuiGatewayClients = new Map<string, TuiGatewayClient>();
 
 function tuiGatewayPython(): string {
-  if (process.platform === "win32" && /pythonw\.exe$/i.test(HERMES_PYTHON)) {
-    return HERMES_PYTHON.replace(/pythonw\.exe$/i, "python.exe");
+  if (process.platform === "win32" && /pythonw\.exe$/i.test(CORTEX_PYTHON)) {
+    return CORTEX_PYTHON.replace(/pythonw\.exe$/i, "python.exe");
   }
-  return HERMES_PYTHON;
+  return CORTEX_PYTHON;
 }
 
 function tuiGatewayEnv(profile?: string): Record<string, string> {
@@ -748,15 +748,15 @@ function tuiGatewayEnv(profile?: string): Record<string, string> {
     ...(process.env as Record<string, string>),
     PATH: getEnhancedPath(),
     HOME: homedir(),
-    HERMES_HOME: profileHome(resolved),
-    HERMES_PYTHON_SRC_ROOT: HERMES_REPO,
+    CORTEX_HOME: profileHome(resolved),
+    CORTEX_PYTHON_SRC_ROOT: CORTEX_REPO,
     PYTHONUNBUFFERED: "1",
   };
   const existingPythonPath = env.PYTHONPATH?.trim();
   env.PYTHONPATH = existingPythonPath
-    ? `${HERMES_REPO}${envPathDelimiter}${existingPythonPath}`
-    : HERMES_REPO;
-  if (resolved) env.HERMES_PROFILE = resolved;
+    ? `${CORTEX_REPO}${envPathDelimiter}${existingPythonPath}`
+    : CORTEX_REPO;
+  if (resolved) env.CORTEX_PROFILE = resolved;
   for (const [key, value] of Object.entries(readEnv(profile))) {
     if (value) env[key] = value;
   }
@@ -807,7 +807,7 @@ const CAPABILITIES_CACHE_MS = 60_000;
 
 const capabilitiesCache = new Map<
   string,
-  { expiresAt: number; value: HermesApiCapabilities | null }
+  { expiresAt: number; value: AthenaApiCapabilities | null }
 >();
 
 // ────────────────────────────────────────────────────
@@ -1121,7 +1121,7 @@ function sendMessageViaApi(
 
   const reasoningEffort = reasoningEffortForProfile(profile);
   const bodyObj: Record<string, unknown> = {
-    model: mc.model || "hermes-agent",
+    model: mc.model || "athena-agent",
     messages,
     stream: true,
     ...(_resumeSessionId ? { session_id: _resumeSessionId } : {}),
@@ -1144,7 +1144,7 @@ function sendMessageViaApi(
 
   const headers = getJsonApiHeaders(profile, bodyBuf);
 
-  // Session id: always send via `X-Hermes-Session-Id` so the gateway
+  // Session id: always send via `X-Athena-Session-Id` so the gateway
   // doesn't fall back to its `_derive_chat_session_id` fingerprint —
   // sha256(system_prompt + first_user_message)[:16] — which collides
   // across every chat whose first user message is the same (e.g. "Hi").
@@ -1152,7 +1152,7 @@ function sendMessageViaApi(
   // conversations and, post-#352, surfaces as old-session content
   // bleeding into new chats when our end-of-stream merge reads
   // getSessionMessages(). Filed upstream as
-  // NousResearch/hermes-agent#7484 (security framing — same root cause).
+  // dr-shabana/athena-agent#7484 (security framing — same root cause).
   //
   // Format: `desk-<ms>-<uuidv4>`. UUIDv4 alone is collision-safe
   // probabilistically (~10⁻³⁶ for any pair); the timestamp prefix makes
@@ -1161,7 +1161,7 @@ function sendMessageViaApi(
   // from the gateway's fingerprint-derived `api-<hash>` ids in
   // state.db / logs.
   //
-  // Gate on auth: the gateway rejects `X-Hermes-Session-Id` with 403
+  // Gate on auth: the gateway rejects `X-Athena-Session-Id` with 403
   // when API_SERVER_KEY isn't configured (its history-load is gated
   // behind auth). The desktop auto-generates API_SERVER_KEY at install
   // and remote mode supplies its own bearer, so in practice this
@@ -1172,7 +1172,7 @@ function sendMessageViaApi(
   let sessionId =
     _resumeSessionId || (hasAuth ? `desk-${Date.now()}-${randomUUID()}` : "");
   if (sessionId) {
-    headers["X-Hermes-Session-Id"] = sessionId;
+    headers["X-Athena-Session-Id"] = sessionId;
   }
   let hasContent = false;
   let finished = false; // guard against double callbacks
@@ -1184,7 +1184,7 @@ function sendMessageViaApi(
     if (finished) return;
     finished = true;
     console.log(
-      "[hermes] finish called:",
+      "[athena] finish called:",
       error ? `error=${error}` : "done",
       "sessionId=",
       sessionId,
@@ -1199,7 +1199,7 @@ function sendMessageViaApi(
   function probeRealError(): void {
     // When streaming returns empty, make a non-streaming request to surface the real error
     const probeBodyObj: Record<string, unknown> = {
-      model: mc.model || "hermes-agent",
+      model: mc.model || "athena-agent",
       messages: [{ role: "user", content: userContent }],
       stream: false,
     };
@@ -1253,7 +1253,7 @@ function sendMessageViaApi(
 
   /** Handle a custom SSE event (non-data lines with `event:` prefix). */
   function processCustomEvent(eventType: string, data: string): void {
-    if (eventType === "hermes.tool.progress") {
+    if (eventType === "athena.tool.progress") {
       try {
         const payload = JSON.parse(data) as Record<string, unknown>;
         const toolEvent = chatToolEventFromPayload(payload);
@@ -1350,7 +1350,7 @@ function sendMessageViaApi(
       timeout: 120000,
     },
     (res) => {
-      const sid = res.headers["x-hermes-session-id"];
+      const sid = res.headers["x-athena-session-id"];
       if (sid && typeof sid === "string") sessionId = sid;
 
       if (res.statusCode !== 200) {
@@ -1386,7 +1386,7 @@ function sendMessageViaApi(
         }
         if (!dataLine) return false;
         if (eventType) {
-          // Custom event (e.g. hermes.tool.progress) — never signals [DONE]
+          // Custom event (e.g. athena.tool.progress) — never signals [DONE]
           processCustomEvent(eventType, dataLine);
           return false;
         }
@@ -1430,7 +1430,7 @@ function sendMessageViaApi(
   });
   req.on("timeout", () => {
     finish(
-      "API request timed out. Check the SSH tunnel and remote Hermes gateway.",
+      "API request timed out. Check the SSH tunnel and remote Athena gateway.",
     );
     req.destroy();
   });
@@ -1495,7 +1495,7 @@ function sendMessageViaRuns(
       : "");
   const ctxSystem = contextFolderSystemMessage(contextFolder);
   const bodyObj: Record<string, unknown> = {
-    model: mc.model || "hermes-agent",
+    model: mc.model || "athena-agent",
     input: message,
     conversation_history: apiHistory(history),
   };
@@ -1506,7 +1506,7 @@ function sendMessageViaRuns(
   const bodyBuf = Buffer.from(JSON.stringify(bodyObj), "utf-8");
   const headers = getJsonApiHeaders(profile, bodyBuf);
   if (sessionId) {
-    headers["X-Hermes-Session-Id"] = sessionId;
+    headers["X-Athena-Session-Id"] = sessionId;
   }
 
   let runId = "";
@@ -1591,7 +1591,7 @@ function sendMessageViaRuns(
       const err =
         typeof raw.error === "string" && raw.error
           ? raw.error
-          : "Hermes run failed.";
+          : "Athena run failed.";
       if (!hasContent) {
         fallbackToChatCompletions();
         return;
@@ -1601,7 +1601,7 @@ function sendMessageViaRuns(
     }
 
     if (eventName === "run.cancelled") {
-      finish(hasContent ? undefined : "Hermes run was cancelled.");
+      finish(hasContent ? undefined : "Athena run was cancelled.");
       return;
     }
 
@@ -1797,7 +1797,7 @@ async function sendMessageViaTuiGateway(
     cleanup();
     client.stop();
     console.warn(
-      "[chat] Hermes gateway stream failed before output; falling back to API stream:",
+      "[chat] Athena gateway stream failed before output; falling back to API stream:",
       reason,
     );
     void sendMessageViaNonGatewayApi(
@@ -1865,7 +1865,7 @@ async function sendMessageViaTuiGateway(
       const error =
         typeof event.payload?.message === "string"
           ? event.payload.message
-          : "Hermes gateway stream reported an error.";
+          : "Athena gateway stream reported an error.";
       if (!hasGatewayOutput) {
         startApiFallback(error);
         return;
@@ -1875,7 +1875,7 @@ async function sendMessageViaTuiGateway(
     }
 
     if (event.type === "approval.request") {
-      // Match the existing local chat posture: Hermes One does not expose a
+      // Match the existing local chat posture: Athena Q does not expose a
       // mid-stream approval dialog, so answer the dashboard protocol once and
       // keep the transcript focused on the resulting tool call/result events.
       void client
@@ -1912,7 +1912,7 @@ async function sendMessageViaTuiGateway(
           .request("session.interrupt", { session_id: activeSessionId }, 5_000)
           .catch(() => undefined);
         finish(
-          "Hermes requested clarify input, but the gateway provided no request_id to answer.",
+          "Athena requested clarify input, but the gateway provided no request_id to answer.",
         );
         return;
       }
@@ -1957,7 +1957,7 @@ async function sendMessageViaTuiGateway(
         .request("session.interrupt", { session_id: activeSessionId }, 5_000)
         .catch(() => undefined);
       finish(
-        `Hermes requested ${event.type.replace(".request", "")} input, but Hermes One does not yet expose that gateway dialog.`,
+        `Athena requested ${event.type.replace(".request", "")} input, but Athena Q does not yet expose that gateway dialog.`,
       );
     }
   });
@@ -1991,7 +1991,7 @@ async function sendMessageViaTuiGateway(
     }
 
     if (!activeSessionId) {
-      throw new Error("Hermes gateway did not return a session id");
+      throw new Error("Athena gateway did not return a session id");
     }
 
     if (!hasSessionInfo) {
@@ -2037,7 +2037,7 @@ async function sendMessageViaTuiGateway(
 //  CLI fallback (slow path — spawns process)
 // ────────────────────────────────────────────────────
 
-const NOISE_PATTERNS = [/^[╭╰│╮╯─┌┐└┘┤├┬┴┼]/, /⚕\s*Hermes/];
+const NOISE_PATTERNS = [/^[╭╰│╮╯─┌┐└┘┤├┬┴┼]/, /⚕\s*Athena/];
 const CLI_COMPAT_PROVIDER_OVERRIDE: Record<string, string> = {
   aimlapi: "custom",
 };
@@ -2069,7 +2069,7 @@ function sendMessageViaCli(
   const mc = getModelConfig(profile);
   const profileEnv = readEnv(profile);
 
-  const args = hermesCliArgs();
+  const args = athenaCliArgs();
   if (profile && profile !== "default") {
     args.push("-p", profile);
   }
@@ -2092,7 +2092,7 @@ function sendMessageViaCli(
     ...(process.env as Record<string, string>),
     PATH: getEnhancedPath(),
     HOME: homedir(),
-    HERMES_HOME: HERMES_HOME,
+    CORTEX_HOME: CORTEX_HOME,
     PYTHONUNBUFFERED: "1",
   };
 
@@ -2154,10 +2154,10 @@ function sendMessageViaCli(
     }
     const isAnthropicProtocol = modelApiMode === "anthropic_messages";
     if (isAnthropicProtocol) {
-      env.HERMES_INFERENCE_PROVIDER = "anthropic";
+      env.CORTEX_INFERENCE_PROVIDER = "anthropic";
       env.ANTHROPIC_BASE_URL = mc.baseUrl.replace(/\/+$/, "");
     } else {
-      env.HERMES_INFERENCE_PROVIDER = "custom";
+      env.CORTEX_INFERENCE_PROVIDER = "custom";
       env.OPENAI_BASE_URL = mc.baseUrl.replace(/\/+$/, "");
       if (cliProvider === "custom") {
         env.CUSTOM_BASE_URL = mc.baseUrl.replace(/\/+$/, "");
@@ -2171,7 +2171,7 @@ function sendMessageViaCli(
     //  - Old engine (≤ v0.14.0) routes via OPENAI_API_KEY + OPENAI_BASE_URL.
     //  - Current upstream main refuses to forward OPENAI_API_KEY to a
     //    non-openai host and instead derives <VENDOR>_API_KEY from the
-    //    URL host (see hermes_cli/runtime_provider.py::_host_derived_api_key).
+    //    URL host (see cortex_cli/runtime_provider.py::_host_derived_api_key).
     //    Without the host-derived var in the child env, chat against a
     //    custom provider on api.deepseek.com / api.groq.com / etc. falls
     //    through to "no-key-required" and 401s.
@@ -2244,8 +2244,8 @@ function sendMessageViaCli(
     delete env.OPENROUTER_BASE_URL;
   }
 
-  const proc = spawn(HERMES_PYTHON, args, {
-    cwd: HERMES_REPO,
+  const proc = spawn(CORTEX_PYTHON, args, {
+    cwd: CORTEX_REPO,
     env,
     stdio: ["ignore", "pipe", "pipe"],
     ...HIDDEN_SUBPROCESS_OPTIONS,
@@ -2316,8 +2316,8 @@ function sendMessageViaCli(
       const detail = stderrBuffer.trim();
       cb.onError(
         detail
-          ? `Hermes exited with code ${code}: ${detail}`
-          : `Hermes exited with code ${code}. Check your model configuration and API key.`,
+          ? `Athena exited with code ${code}: ${detail}`
+          : `Athena exited with code ${code}. Check your model configuration and API key.`,
       );
     }
   });
@@ -2369,7 +2369,7 @@ async function sendMessageViaNonGatewayApi(
   const approvalCommand = /^\/(?:approve|deny)\b/i.test(message.trim());
   if (!attachments?.length && !approvalCommand) {
     const capabilities = await getApiCapabilities(profile);
-    if (supportsHermesRunsTransport(capabilities)) {
+    if (supportsAthenaRunsTransport(capabilities)) {
       return sendMessageViaRuns(
         message,
         cb,
@@ -2419,7 +2419,7 @@ async function sendMessageViaBestApi(
       );
     } catch (error) {
       console.warn(
-        "[chat] Hermes gateway stream unavailable; falling back to API stream:",
+        "[chat] Athena gateway stream unavailable; falling back to API stream:",
         error instanceof Error ? error.message : String(error),
       );
     }
@@ -2611,7 +2611,7 @@ export async function sendMessage(
   // Check API server availability when the cache is cold or known-bad. Once
   // the API is known healthy, keep the normal send path fast and let the API
   // transport error wrapper handle a stale cache caused by external lifecycle
-  // events such as `hermes update` or Windows sleep/resume.
+  // events such as `athena update` or Windows sleep/resume.
   if (apiServerAvailable === null || apiServerAvailable === false) {
     apiServerAvailable = await isApiServerReady(profile);
     if (!apiServerAvailable) {
@@ -2676,7 +2676,7 @@ export function stopHealthPolling(): void {
 // default profile, the profile name otherwise). Tracking them in maps —
 // rather than a single global — lets several profiles' gateways run at once
 // (e.g. each keeping its own Telegram bot online), which is the documented
-// hermes model: one gateway per profile, bound to that profile's own port.
+// athena model: one gateway per profile, bound to that profile's own port.
 const gatewayProcesses = new Map<string, ChildProcess>();
 const appStartedProfiles = new Set<string>();
 
@@ -2701,16 +2701,16 @@ function invalidateApiCacheFor(profile?: string): void {
 }
 
 function getGatewaySpawnError(): string | null {
-  if (!existsSync(HERMES_PYTHON)) {
+  if (!existsSync(CORTEX_PYTHON)) {
     return (
-      `Cannot start the gateway because the Hermes Python interpreter was not found at ${HERMES_PYTHON}. ` +
-      "Install or repair Hermes Agent, then try again."
+      `Cannot start the gateway because the Athena Python interpreter was not found at ${CORTEX_PYTHON}. ` +
+      "Install or repair Athena Agent, then try again."
     );
   }
-  if (!existsSync(HERMES_REPO)) {
+  if (!existsSync(CORTEX_REPO)) {
     return (
-      `Cannot start the gateway because the hermes-agent repository was not found at ${HERMES_REPO}. ` +
-      "Install or repair Hermes Agent, then try again."
+      `Cannot start the gateway because the athena-agent repository was not found at ${CORTEX_REPO}. ` +
+      "Install or repair Athena Agent, then try again."
     );
   }
   return null;
@@ -2745,7 +2745,7 @@ function buildGatewayEnv(profile?: string): Record<string, string> {
     ...(process.env as Record<string, string>),
     PATH: getEnhancedPath(),
     HOME: homedir(),
-    HERMES_HOME: HERMES_HOME,
+    CORTEX_HOME: CORTEX_HOME,
     API_SERVER_ENABLED: "true",
     // Bind to this profile's port. config.yaml's api_server.port wins when
     // present (getProfilePort keeps it collision-free); this env value covers
@@ -2775,7 +2775,7 @@ function buildGatewayEnv(profile?: string): Record<string, string> {
   // become an env var, and the gateway never reads it directly.
   //
   // The result is a divergence: the desktop happily sends
-  // `Authorization: Bearer <key>` + `X-Hermes-Session-Id` for users
+  // `Authorization: Bearer <key>` + `X-Athena-Session-Id` for users
   // whose key lives in `api_server.token`, while the gateway's
   // `self._api_key` is empty and returns 403 with
   //   "Session continuation requires API key authentication.
@@ -2809,12 +2809,12 @@ export function startGatewayDetailed(profile?: string): GatewayStartResult {
   // Defensive: the local gateway is never the right thing to spawn in
   // remote/SSH mode — the user is pointing at an off-machine server.
   // Callers should already gate, but several IPC handlers historically
-  // forgot to (issue #266), and reaching `spawn(HERMES_PYTHON, …)` when
-  // there's no local hermes-agent install produces an uncaught ENOENT
+  // forgot to (issue #266), and reaching `spawn(CORTEX_PYTHON, …)` when
+  // there's no local athena-agent install produces an uncaught ENOENT
   // that pops a generic error dialog.  Refuse cleanly here.
   if (isRemoteMode()) {
     const error =
-      "The local gateway can only be started in local mode. Switch to local mode, or start the gateway on the remote Hermes host.";
+      "The local gateway can only be started in local mode. Switch to local mode, or start the gateway on the remote Athena host.";
     console.warn(
       "[gateway] startGateway() called in remote/SSH mode — refusing local spawn",
     );
@@ -2858,13 +2858,13 @@ export function startGatewayDetailed(profile?: string): GatewayStartResult {
 
   // Target the specific profile via `--profile <name>` (placed before the
   // subcommand, as the CLI requires). The flag makes the CLI repoint
-  // HERMES_HOME at the profile's dir internally; the shared repo/venv stay
+  // CORTEX_HOME at the profile's dir internally; the shared repo/venv stay
   // put. The default profile takes no flag.
   const cliArgs = gatewayCliCommandArgs(profile, ["gateway"]);
   let proc: ChildProcess;
   try {
-    proc = spawn(HERMES_PYTHON, hermesCliArgs(cliArgs), {
-      cwd: HERMES_REPO,
+    proc = spawn(CORTEX_PYTHON, athenaCliArgs(cliArgs), {
+      cwd: CORTEX_REPO,
       env: gatewayEnv,
       stdio: ["ignore", "ignore", stderrFd >= 0 ? stderrFd : "ignore"],
       detached: true,
@@ -2953,9 +2953,9 @@ function parsePidFromFile(pidFile: string): number | null {
 }
 
 /**
- * The gateway.pid path for a profile. The hermes CLI writes it into the
- * profile's home directory (~/.hermes/gateway.pid for default,
- * ~/.hermes/profiles/<name>/gateway.pid for a named profile), so each
+ * The gateway.pid path for a profile. The athena CLI writes it into the
+ * profile's home directory (~/.cortex/gateway.pid for default,
+ * ~/.cortex/profiles/<name>/gateway.pid for a named profile), so each
  * profile's gateway has its own PID file — that's what lets them coexist.
  */
 function gatewayPidPath(profile?: string): string {
@@ -3350,7 +3350,7 @@ async function restartGatewayViaCliOnce(
     const wasHealthyBeforeRestart = await isApiServerReady(profile);
     appendFileSync(
       logPath,
-      `\n[gateway:${key}] Desktop requested hermes gateway restart at ${new Date().toISOString()}\n`,
+      `\n[gateway:${key}] Desktop requested athena gateway restart at ${new Date().toISOString()}\n`,
     );
 
     return await new Promise<boolean>((resolve) => {
@@ -3359,10 +3359,10 @@ async function restartGatewayViaCliOnce(
       try {
         stderrFd = openSync(logPath, "a");
         proc = spawn(
-          HERMES_PYTHON,
-          hermesCliArgs(gatewayCliCommandArgs(profile, ["gateway", "restart"])),
+          CORTEX_PYTHON,
+          athenaCliArgs(gatewayCliCommandArgs(profile, ["gateway", "restart"])),
           {
-            cwd: HERMES_REPO,
+            cwd: CORTEX_REPO,
             env: buildGatewayEnv(profile),
             stdio: ["ignore", "ignore", stderrFd >= 0 ? stderrFd : "ignore"],
             detached: true,

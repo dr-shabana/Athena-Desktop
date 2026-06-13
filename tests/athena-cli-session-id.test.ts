@@ -32,11 +32,11 @@ const {
       >,
       TEST_HOME: path.join(
         os.tmpdir(),
-        `hermes-cli-session-test-${Date.now()}`,
+        `athena-cli-session-test-${Date.now()}`,
       ),
       TEST_REPO: path.join(
         os.tmpdir(),
-        `hermes-cli-session-repo-${Date.now()}`,
+        `athena-cli-session-repo-${Date.now()}`,
       ),
       healthStatuses: [] as number[],
       apiRequests: [] as Array<{
@@ -139,7 +139,7 @@ vi.mock("http", () => ({
                 headers: Record<string, string>;
               };
               res.statusCode = 200;
-              res.headers = { "x-hermes-session-id": "desk-cold-gateway" };
+              res.headers = { "x-athena-session-id": "desk-cold-gateway" };
               cb?.(res);
               queueMicrotask(() => {
                 res.emit(
@@ -168,7 +168,7 @@ vi.mock("http", () => ({
               headers: Record<string, string>;
             };
             res.statusCode = 200;
-            res.headers = { "x-hermes-session-id": "desk-cold-gateway" };
+            res.headers = { "x-athena-session-id": "desk-cold-gateway" };
             cb?.(res);
             queueMicrotask(() => {
               res.emit(
@@ -240,10 +240,10 @@ vi.mock("child_process", () => ({
 }));
 
 vi.mock("../src/main/installer", () => ({
-  HERMES_HOME: TEST_HOME,
-  HERMES_PYTHON: process.execPath,
-  HERMES_REPO: TEST_REPO,
-  hermesCliArgs: (extra?: string[]) => ["/dev/null", ...(extra || [])],
+  CORTEX_HOME: TEST_HOME,
+  CORTEX_PYTHON: process.execPath,
+  CORTEX_REPO: TEST_REPO,
+  athenaCliArgs: (extra?: string[]) => ["/dev/null", ...(extra || [])],
   getEnhancedPath: () => process.env.PATH || "",
 }));
 
@@ -289,7 +289,7 @@ import {
   startGateway,
   stopGateway,
   stopHealthPolling,
-} from "../src/main/hermes";
+} from "../src/main/athena";
 
 describe("CLI fallback session id propagation", () => {
   beforeEach(() => {
@@ -366,7 +366,7 @@ describe("CLI fallback session id propagation", () => {
       OPENAI_API_KEY: "sk-aiml-test",
       OPENAI_BASE_URL: "https://api.aimlapi.com/v1",
       CUSTOM_BASE_URL: "https://api.aimlapi.com/v1",
-      HERMES_INFERENCE_PROVIDER: "custom",
+      CORTEX_INFERENCE_PROVIDER: "custom",
     });
   });
 
@@ -407,7 +407,7 @@ describe("CLI fallback session id propagation", () => {
     ).resolves.toBe("desk-cold-gateway");
 
     expect(apiRequests).toHaveLength(1);
-    expect(apiRequests[0].headers["X-Hermes-Session-Id"]).toBe(cliSessionId);
+    expect(apiRequests[0].headers["X-Athena-Session-Id"]).toBe(cliSessionId);
     expect(JSON.parse(apiRequests[0].body)).toMatchObject({
       session_id: cliSessionId,
       messages: [{ role: "user", content: "what time is it?" }],
@@ -673,7 +673,7 @@ describe("CLI fallback session id propagation", () => {
         }).catch(reject);
       }),
     ).rejects.toThrow(
-      "API request timed out. Check the SSH tunnel and remote Hermes gateway.",
+      "API request timed out. Check the SSH tunnel and remote Athena gateway.",
     );
 
     expect(chunks).toEqual([]);

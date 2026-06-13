@@ -6,8 +6,8 @@
  * Providers UI Model field and the Models page Add/Edit dialog so users
  * don't have to type the exact id from memory.
  *
- * Upstream `hermes-agent` has an equivalent helper at
- * ``hermes_cli/models.py::fetch_api_models`` used by the TUI's /model
+ * Upstream `athena-agent` has an equivalent helper at
+ * ``cortex_cli/models.py::fetch_api_models`` used by the TUI's /model
  * picker; this mirrors that flow on the desktop side without going
  * through the Python CLI.
  */
@@ -21,9 +21,9 @@ import { readEnv } from "./config";
 import { profileHome } from "./utils";
 import {
   expectedEnvKeyForModel,
-  HERMES_PYTHON,
-  HERMES_REPO,
-  HERMES_HOME,
+  CORTEX_PYTHON,
+  CORTEX_REPO,
+  CORTEX_HOME,
   getEnhancedPath,
 } from "./installer";
 // PROVIDER_BASE_URLS lives in its own module so `config.ts` can use the
@@ -46,7 +46,7 @@ const NON_DISCOVERABLE_PROVIDERS = new Set<string>([
 ]);
 
 /** OAuth/subscription providers — no static-key `/v1/models` endpoint.
- *  Their model lists come from hermes-agent's `provider_model_ids`
+ *  Their model lists come from athena-agent's `provider_model_ids`
  *  (live + account-aware for Codex), reached via a short Python call.
  *  `nous` is included here since the desktop now exposes its OAuth
  *  sign-in surface (issue #367). */
@@ -59,8 +59,8 @@ const OAUTH_DISCOVERY_PROVIDERS = new Set<string>([
   "nous",
 ]);
 
-/** Curated fallback model lists, mirrored from hermes-agent's
- *  `hermes_cli/models.py` (`_PROVIDER_MODELS`) and `codex_models.py`
+/** Curated fallback model lists, mirrored from athena-agent's
+ *  `cortex_cli/models.py` (`_PROVIDER_MODELS`) and `codex_models.py`
  *  (`DEFAULT_CODEX_MODELS`). Used only when the Python call below is
  *  unavailable (agent not installed, import error, timeout). The live
  *  call is always preferred — these will drift as new models ship. */
@@ -90,24 +90,24 @@ const OAUTH_PROVIDER_CURATED: Record<string, string[]> = {
   "qwen-oauth": [],
 };
 
-// One-liner that prints hermes-agent's model list for a provider as a
+// One-liner that prints athena-agent's model list for a provider as a
 // JSON array. `provider_model_ids` does the heavy lifting — curated
 // lists for most, plus a live account-aware query for openai-codex.
 const PROVIDER_MODELS_SNIPPET =
-  "import json,sys; from hermes_cli.models import provider_model_ids; " +
+  "import json,sys; from cortex_cli.models import provider_model_ids; " +
   "print(json.dumps(list(provider_model_ids(sys.argv[1]))))";
 
-/** Ask hermes-agent's `provider_model_ids` for a provider's models by
+/** Ask athena-agent's `provider_model_ids` for a provider's models by
  *  running a short Python snippet against the bundled venv. Returns the
  *  parsed list, or null on any failure (so the caller can fall back). */
 function runProviderModelIdsPython(provider: string): Promise<string[] | null> {
   return new Promise((resolve) => {
     execFile(
-      HERMES_PYTHON,
+      CORTEX_PYTHON,
       ["-c", PROVIDER_MODELS_SNIPPET, provider],
       {
-        cwd: HERMES_REPO,
-        env: { ...process.env, PATH: getEnhancedPath(), HERMES_HOME },
+        cwd: CORTEX_REPO,
+        env: { ...process.env, PATH: getEnhancedPath(), CORTEX_HOME },
         timeout: 20_000,
         windowsHide: true,
       },
@@ -131,7 +131,7 @@ function runProviderModelIdsPython(provider: string): Promise<string[] | null> {
   });
 }
 
-/** Resolve an OAuth provider's models: hermes-agent's live list first,
+/** Resolve an OAuth provider's models: athena-agent's live list first,
  *  curated fallback when that's unavailable. */
 async function discoverOAuthModels(provider: string): Promise<string[]> {
   const live = await runProviderModelIdsPython(provider);
@@ -144,7 +144,7 @@ async function discoverOAuthModels(provider: string): Promise<string[]> {
  * stored in `auth.json`, and return the IDs of models whose prompt +
  * completion pricing are both zero — i.e. the free tier. Issue #367
  * found that a free-subscription user picking the default Nous model
- * (Hermes-4-405B) gets a billing error. Surfacing free models in the
+ * (Athena-4-405B) gets a billing error. Surfacing free models in the
  * autocomplete makes the right choice discoverable.
  *
  * Returns [] on any failure (no token, no inference_base_url, HTTP
@@ -520,7 +520,7 @@ export async function discoverProviderModels(
   const lowerProvider = (provider || "").trim().toLowerCase();
 
   // OAuth/subscription providers don't have a static-key /v1/models
-  // endpoint — route them through hermes-agent's provider_model_ids.
+  // endpoint — route them through athena-agent's provider_model_ids.
   if (OAUTH_DISCOVERY_PROVIDERS.has(lowerProvider)) {
     const hit = fromCache(lowerProvider, "");
     if (hit) {
@@ -544,7 +544,7 @@ export async function discoverProviderModels(
       const allFree = await fetchNousFreeModelIds(profile);
       // Keep only the free IDs that are actually in the curated list
       // we're surfacing — avoids confusing the user with names that
-      // wouldn't autocomplete anyway. If hermes-agent's list misses
+      // wouldn't autocomplete anyway. If athena-agent's list misses
       // some free ones, fall back to the full live list.
       const inCurated = allFree.filter((id) => models.includes(id));
       freeModels = inCurated.length > 0 ? inCurated : allFree;

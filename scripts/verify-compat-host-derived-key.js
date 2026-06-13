@@ -49,20 +49,20 @@ function restoreFile(file, snapshot) {
   let modelsOriginal;
 
   try {
-    ({ browser, page } = await attach({ titleHint: "Hermes" }));
+    ({ browser, page } = await attach({ titleHint: "Athena" }));
 
-    // Phase A - observe HERMES_HOME + engine version.
+    // Phase A - observe CORTEX_HOME + engine version.
     const home = await page.evaluate(
-      async () => await window.hermesAPI.getHermesHome(),
+      async () => await window.athenaAPI.getAthenaHome(),
     );
     const engine = await page.evaluate(
-      async () => await window.hermesAPI.getHermesVersion(),
+      async () => await window.athenaAPI.getAthenaVersion(),
     );
-    console.log("HERMES_HOME:", home);
+    console.log("CORTEX_HOME:", home);
     console.log("Engine:    ", engine);
-    const flavor = home.toLowerCase().includes("hermes-oldengine")
+    const flavor = home.toLowerCase().includes("athena-oldengine")
       ? "OLD"
-      : home.toLowerCase().includes("hermes-newengine")
+      : home.toLowerCase().includes("athena-newengine")
         ? "NEW"
         : "DEFAULT";
     console.log("Test leg:  ", flavor);
@@ -103,7 +103,7 @@ function restoreFile(file, snapshot) {
       console.log("[C] Temporarily deleted models.json to force re-seed");
     }
     const listed = await page.evaluate(
-      async () => await window.hermesAPI.listModels(),
+      async () => await window.athenaAPI.listModels(),
     );
     const found = listed.find((model) => model.name === PROVIDER_NAME);
     console.log(

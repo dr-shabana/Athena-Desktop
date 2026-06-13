@@ -77,7 +77,7 @@ export default {
     model: "現在のモデルを表示・切替",
     memory: "エージェントメモリを表示",
     persona: "現在のペルソナを表示",
-    version: "Hermes バージョンを表示",
+    version: "Athena バージョンを表示",
   },
   worktree: {
     loading: "読み込み中",

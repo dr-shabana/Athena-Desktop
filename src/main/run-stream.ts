@@ -1,19 +1,19 @@
 import type { ChatToolEvent } from "../shared/chat-stream";
 
-export interface HermesApiCapabilities {
+export interface AthenaApiCapabilities {
   features?: Record<string, unknown>;
   endpoints?: Record<string, { path?: unknown } | unknown>;
 }
 
 function boolFeature(
-  capabilities: HermesApiCapabilities | null | undefined,
+  capabilities: AthenaApiCapabilities | null | undefined,
   name: string,
 ): boolean {
   return capabilities?.features?.[name] === true;
 }
 
 function endpointPath(
-  capabilities: HermesApiCapabilities | null | undefined,
+  capabilities: AthenaApiCapabilities | null | undefined,
   name: string,
 ): string {
   const endpoint = capabilities?.endpoints?.[name];
@@ -22,8 +22,8 @@ function endpointPath(
   return typeof path === "string" ? path : "";
 }
 
-export function supportsHermesRunsTransport(
-  capabilities: HermesApiCapabilities | null | undefined,
+export function supportsAthenaRunsTransport(
+  capabilities: AthenaApiCapabilities | null | undefined,
 ): boolean {
   return (
     boolFeature(capabilities, "run_submission") &&

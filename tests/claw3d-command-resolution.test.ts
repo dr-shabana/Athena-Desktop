@@ -80,7 +80,7 @@ describe("Claw3D command resolution", () => {
         command: "C:\\Users\\me\\AppData\\Roaming\\npm\\npm.cmd",
         windowsScript: true,
       },
-      ["run", "hermes-adapter"],
+      ["run", "athena-adapter"],
       {
         platform: "win32",
         fileExists: (path) =>
@@ -94,7 +94,7 @@ describe("Claw3D command resolution", () => {
       args: [
         "C:\\Users\\me\\AppData\\Roaming\\npm\\node_modules\\npm\\bin\\npm-cli.js",
         "run",
-        "hermes-adapter",
+        "athena-adapter",
       ],
     });
   });
@@ -109,12 +109,12 @@ describe("Claw3D command resolution", () => {
 
     expect(
       createClaw3dScriptInvocation(
-        "hermes-adapter",
+        "athena-adapter",
         "C:\\nvm4w\\nodejs\\node.exe",
       ),
     ).toEqual({
       command: "C:\\nvm4w\\nodejs\\node.exe",
-      args: ["server/hermes-gateway-adapter.js"],
+      args: ["server/athena-gateway-adapter.js"],
     });
   });
 });

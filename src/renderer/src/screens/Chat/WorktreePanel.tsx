@@ -52,7 +52,7 @@ function TreeItem({
   const loadChildren = useCallback(async () => {
     if (!entry.isDirectory || children !== null) return;
     setIsLoading(true);
-    const result = await window.hermesAPI.readDirectory(fullPath);
+    const result = await window.athenaAPI.readDirectory(fullPath);
     if (result) {
       // Sort: directories first, then files, both alphabetically
       const sorted = result.sort((a, b) => {
@@ -156,7 +156,7 @@ export const WorktreePanel = memo(function WorktreePanel({
     setTerminalError(null);
 
     const loadRoot = async (): Promise<void> => {
-      const result = await window.hermesAPI.readDirectory(folderPath);
+      const result = await window.athenaAPI.readDirectory(folderPath);
       if (cancelled) return;
       if (result === null) {
         setError(t("chat.worktree.errorLoading"));
@@ -185,7 +185,7 @@ export const WorktreePanel = memo(function WorktreePanel({
 
   const handleOpenTerminal = async (): Promise<void> => {
     setTerminalError(null);
-    const opened = await window.hermesAPI.openTerminal(folderPath);
+    const opened = await window.athenaAPI.openTerminal(folderPath);
     if (!opened) setTerminalError(t("chat.worktree.openTerminalFailed"));
   };
 

@@ -4,13 +4,13 @@ import {
   parseRunSseBlock,
   runCompletedUsage,
   runEventReasoningText,
-  supportsHermesRunsTransport,
+  supportsAthenaRunsTransport,
 } from "./run-stream";
 
-describe("supportsHermesRunsTransport", () => {
+describe("supportsAthenaRunsTransport", () => {
   it("requires the run features and endpoint paths", () => {
     expect(
-      supportsHermesRunsTransport({
+      supportsAthenaRunsTransport({
         features: {
           run_submission: true,
           run_events_sse: true,
@@ -30,7 +30,7 @@ describe("supportsHermesRunsTransport", () => {
 
   it("rejects older gateways that only expose chat completions", () => {
     expect(
-      supportsHermesRunsTransport({
+      supportsAthenaRunsTransport({
         features: {
           chat_completions_streaming: true,
         },
@@ -43,7 +43,7 @@ describe("supportsHermesRunsTransport", () => {
 
   it("rejects partial run support without stop", () => {
     expect(
-      supportsHermesRunsTransport({
+      supportsAthenaRunsTransport({
         features: {
           run_submission: true,
           run_events_sse: true,
@@ -61,7 +61,7 @@ describe("supportsHermesRunsTransport", () => {
 
   it("rejects run support without the approval response endpoint", () => {
     expect(
-      supportsHermesRunsTransport({
+      supportsAthenaRunsTransport({
         features: {
           run_submission: true,
           run_events_sse: true,

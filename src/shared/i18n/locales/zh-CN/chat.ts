@@ -74,7 +74,7 @@ export default {
     model: "查看或切换当前模型",
     memory: "查看代理记忆",
     persona: "查看当前人格",
-    version: "查看 Hermes 版本",
+    version: "查看 Athena 版本",
   },
   worktree: {
     loading: "加载中",

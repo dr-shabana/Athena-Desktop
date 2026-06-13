@@ -10,7 +10,7 @@ import type { ChatMessage } from "../src/renderer/src/screens/Chat/types";
  * Two cases drive the design:
  *
  *   1. Today — DeepSeek (and o1/o3) emit `reasoning_content` over SSE
- *      but the gateway (NousResearch/hermes-agent#30449) doesn't
+ *      but the gateway (dr-shabana/athena-agent#30449) doesn't
  *      forward it. So reasoning + tool rows only exist in state.db.
  *      The merge must ADD those rows so the user sees them without
  *      a window-focus dance.
@@ -512,7 +512,7 @@ describe("reconcileStreamedWithDb", () => {
         role: "agent",
         callId: "live-tool:run-1:execute_code:1",
         name: "execute_code",
-        args: "from hermes_tools import terminal",
+        args: "from athena_tools import terminal",
       },
       STREAMED_AGENT("Done.", "a-1"),
     ];
@@ -520,7 +520,7 @@ describe("reconcileStreamedWithDb", () => {
       DB_USER("make an image", 60),
       DB_TOOL_CALL("call-skill", "skill_view", "ai-playground-image-gen", 61),
       DB_TOOL_RESULT("call-skill", "skill_view", "ok", 62),
-      DB_TOOL_CALL("call-code", "execute_code", "from hermes_tools import terminal", 63),
+      DB_TOOL_CALL("call-code", "execute_code", "from athena_tools import terminal", 63),
       DB_TOOL_RESULT("call-code", "execute_code", "ok", 64),
       DB_AGENT("Done.", 65),
     ];

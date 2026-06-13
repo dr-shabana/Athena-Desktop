@@ -8,7 +8,7 @@ const {
   healthStatuses,
   aliveGatewayPids,
   restartScript,
-  hermesCliArgsSpy,
+  athenaCliArgsSpy,
 } = vi.hoisted(() => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const path = require("path");
@@ -17,25 +17,25 @@ const {
 
   const script =
     "const fs=require('fs'),path=require('path');" +
-    "fs.writeFileSync(path.join(process.env.HERMES_HOME,'restart-env.json')," +
+    "fs.writeFileSync(path.join(process.env.CORTEX_HOME,'restart-env.json')," +
     "JSON.stringify({api:process.env.API_SERVER_ENABLED,key:process.env.TEST_PROFILE_KEY}))";
 
   return {
-    TEST_HOME: path.join(os.tmpdir(), `hermes-gateway-restart-${Date.now()}`),
-    TEST_REPO: path.join(os.tmpdir(), `hermes-gateway-repo-${Date.now()}`),
+    TEST_HOME: path.join(os.tmpdir(), `athena-gateway-restart-${Date.now()}`),
+    TEST_REPO: path.join(os.tmpdir(), `athena-gateway-repo-${Date.now()}`),
     connModeRef: { mode: "local" as "local" | "remote" | "ssh" },
     healthStatuses: [] as number[],
     aliveGatewayPids: new Set<number>(),
     restartScript: script,
-    hermesCliArgsSpy: vi.fn(),
+    athenaCliArgsSpy: vi.fn(),
   };
 });
 
 vi.mock("../src/main/installer", () => ({
-  HERMES_HOME: TEST_HOME,
-  HERMES_PYTHON: process.execPath,
-  HERMES_REPO: TEST_REPO,
-  hermesCliArgs: hermesCliArgsSpy,
+  CORTEX_HOME: TEST_HOME,
+  CORTEX_PYTHON: process.execPath,
+  CORTEX_REPO: TEST_REPO,
+  athenaCliArgs: athenaCliArgsSpy,
   getEnhancedPath: () => process.env.PATH || "",
 }));
 
@@ -119,7 +119,7 @@ import {
   startGatewayWithRecovery,
   stopGateway,
   stopHealthPolling,
-} from "../src/main/hermes";
+} from "../src/main/athena";
 
 function profilePidFile(profile = "work"): string {
   return join(TEST_HOME, "profiles", profile, "gateway.pid");
@@ -166,8 +166,8 @@ describe("restartGatewayViaCli", () => {
     connModeRef.mode = "local";
     healthStatuses.length = 0;
     aliveGatewayPids.clear();
-    hermesCliArgsSpy.mockReset();
-    hermesCliArgsSpy.mockImplementation(() => ["-e", restartScript]);
+    athenaCliArgsSpy.mockReset();
+    athenaCliArgsSpy.mockImplementation(() => ["-e", restartScript]);
   });
 
   afterEach(async () => {
@@ -180,12 +180,12 @@ describe("restartGatewayViaCli", () => {
     rmSync(TEST_REPO, { recursive: true, force: true });
   });
 
-  it("uses the hermes gateway restart command with the profile env", async () => {
+  it("uses the athena gateway restart command with the profile env", async () => {
     healthStatuses.push(503, ...Array(20).fill(200));
 
     await expect(restartGatewayViaCli("work", 50, 1)).resolves.toBe(true);
 
-    expect(hermesCliArgsSpy).toHaveBeenCalledWith([
+    expect(athenaCliArgsSpy).toHaveBeenCalledWith([
       "--profile",
       "work",
       "gateway",
@@ -207,13 +207,13 @@ describe("restartGatewayViaCli", () => {
       `fs.writeFileSync(${JSON.stringify(pidFile)},String(process.pid));` +
       "setInterval(() => {}, 1000);";
 
-    hermesCliArgsSpy.mockImplementation(() => ["-e", longRunningRestartScript]);
+    athenaCliArgsSpy.mockImplementation(() => ["-e", longRunningRestartScript]);
     healthStatuses.push(200, 503, 200);
 
     await expect(restartGatewayViaCli("work", 50, 1)).resolves.toBe(true);
 
     expect(isGatewayRunning("work")).toBe(true);
-    expect(hermesCliArgsSpy).toHaveBeenCalledWith([
+    expect(athenaCliArgsSpy).toHaveBeenCalledWith([
       "--profile",
       "work",
       "gateway",
@@ -233,7 +233,7 @@ describe("restartGatewayViaCli", () => {
       `fs.writeFileSync(${JSON.stringify(pidFile)},String(process.pid));` +
       "setInterval(() => {}, 1000);";
 
-    hermesCliArgsSpy.mockImplementation(() => ["-e", unhealthyRestartScript]);
+    athenaCliArgsSpy.mockImplementation(() => ["-e", unhealthyRestartScript]);
 
     const restart = restartGatewayViaCli("work", 500, 10);
     expect(await waitForFile(pidFile)).toBe(true);
@@ -241,7 +241,7 @@ describe("restartGatewayViaCli", () => {
 
     const spawnedPid = Number(readFileSync(pidFile, "utf-8"));
     expect(await waitForProcessExit(spawnedPid, 3000)).toBe(true);
-    expect(hermesCliArgsSpy).toHaveBeenCalledWith([
+    expect(athenaCliArgsSpy).toHaveBeenCalledWith([
       "--profile",
       "work",
       "gateway",
@@ -252,7 +252,7 @@ describe("restartGatewayViaCli", () => {
   it("does not report success when the restart command exits but health stays down", async () => {
     await expect(restartGatewayViaCli("work", 5, 1)).resolves.toBe(false);
 
-    expect(hermesCliArgsSpy).toHaveBeenCalledWith([
+    expect(athenaCliArgsSpy).toHaveBeenCalledWith([
       "--profile",
       "work",
       "gateway",
@@ -261,7 +261,7 @@ describe("restartGatewayViaCli", () => {
   });
 
   it("resolves false instead of rejecting when restart setup throws", async () => {
-    hermesCliArgsSpy.mockImplementation(() => {
+    athenaCliArgsSpy.mockImplementation(() => {
       throw new Error("boom");
     });
 
@@ -281,17 +281,17 @@ describe("restartGatewayViaCli", () => {
     const second = restartGatewayViaCli("work", 50, 1);
 
     await expect(Promise.all([first, second])).resolves.toEqual([true, true]);
-    expect(hermesCliArgsSpy).toHaveBeenCalledTimes(1);
+    expect(athenaCliArgsSpy).toHaveBeenCalledTimes(1);
   });
 
   it("uses the native restart path only after the old gateway stops", async () => {
-    hermesCliArgsSpy.mockImplementation(() => ["-e", "process.exit(0)"]);
+    athenaCliArgsSpy.mockImplementation(() => ["-e", "process.exit(0)"]);
     healthStatuses.push(503, 200);
 
     await expect(restartGateway("work", 50, 1)).resolves.toBe(true);
 
-    expect(hermesCliArgsSpy).toHaveBeenCalledTimes(1);
-    expect(hermesCliArgsSpy).toHaveBeenCalledWith([
+    expect(athenaCliArgsSpy).toHaveBeenCalledTimes(1);
+    expect(athenaCliArgsSpy).toHaveBeenCalledWith([
       "--profile",
       "work",
       "gateway",
@@ -302,13 +302,13 @@ describe("restartGatewayViaCli", () => {
     const gatewayPid = 424242;
     aliveGatewayPids.add(gatewayPid);
     writeFileSync(profilePidFile(), String(gatewayPid), "utf-8");
-    hermesCliArgsSpy.mockImplementation(() => ["-e", "process.exit(0)"]);
+    athenaCliArgsSpy.mockImplementation(() => ["-e", "process.exit(0)"]);
 
     healthStatuses.push(...Array(100).fill(200));
 
     await expect(restartGateway("work", 25, 1, 25)).resolves.toBe(false);
 
-    expect(hermesCliArgsSpy).not.toHaveBeenCalled();
+    expect(athenaCliArgsSpy).not.toHaveBeenCalled();
     expect(isGatewayRunning("work")).toBe(true);
     expect(readFileSync(profilePidFile(), "utf-8")).toBe(String(gatewayPid));
   });
@@ -318,11 +318,11 @@ describe("restartGatewayViaCli", () => {
     const second = restartGatewayViaCli("personal", 5, 1);
 
     await expect(Promise.all([first, second])).resolves.toEqual([false, false]);
-    expect(hermesCliArgsSpy).toHaveBeenCalledTimes(2);
+    expect(athenaCliArgsSpy).toHaveBeenCalledTimes(2);
   });
 
   it("deduplicates queued restarts for the same profile", async () => {
-    hermesCliArgsSpy
+    athenaCliArgsSpy
       .mockImplementationOnce(() => {
         throw new Error("first failed");
       })
@@ -338,11 +338,11 @@ describe("restartGatewayViaCli", () => {
       true,
       true,
     ]);
-    expect(hermesCliArgsSpy).toHaveBeenCalledTimes(2);
+    expect(athenaCliArgsSpy).toHaveBeenCalledTimes(2);
   });
 
   it("still runs a queued different-profile restart after the in-flight restart setup fails", async () => {
-    hermesCliArgsSpy
+    athenaCliArgsSpy
       .mockImplementationOnce(() => {
         throw new Error("first failed");
       })
@@ -353,7 +353,7 @@ describe("restartGatewayViaCli", () => {
     const second = restartGatewayViaCli("personal", 50, 1);
 
     await expect(Promise.all([first, second])).resolves.toEqual([false, true]);
-    expect(hermesCliArgsSpy).toHaveBeenCalledTimes(2);
+    expect(athenaCliArgsSpy).toHaveBeenCalledTimes(2);
   });
 
   it("keeps an existing tracked gateway when CLI restart setup fails", async () => {
@@ -363,7 +363,7 @@ describe("restartGatewayViaCli", () => {
       `fs.writeFileSync(${JSON.stringify(pidFile)},String(process.pid));` +
       "setInterval(() => {}, 1000);";
 
-    hermesCliArgsSpy
+    athenaCliArgsSpy
       .mockImplementationOnce(() => ["-e", startScript])
       .mockImplementationOnce(() => {
         throw new Error("restart unavailable");
@@ -381,12 +381,12 @@ describe("restartGatewayViaCli", () => {
 
     const spawnedPid = Number(readFileSync(pidFile, "utf-8"));
     expect(await waitForProcessExit(spawnedPid, 3000)).toBe(true);
-    expect(hermesCliArgsSpy).toHaveBeenNthCalledWith(1, [
+    expect(athenaCliArgsSpy).toHaveBeenNthCalledWith(1, [
       "--profile",
       "work",
       "gateway",
     ]);
-    expect(hermesCliArgsSpy).toHaveBeenNthCalledWith(2, [
+    expect(athenaCliArgsSpy).toHaveBeenNthCalledWith(2, [
       "--profile",
       "work",
       "gateway",
@@ -408,7 +408,7 @@ describe("restartGatewayViaCli", () => {
       "function wait(){try{process.kill(pid,0);if(Date.now()<done)return setTimeout(wait,25)}catch{};process.exit(1)};" +
       "wait();";
 
-    hermesCliArgsSpy
+    athenaCliArgsSpy
       .mockImplementationOnce(() => ["-e", startScript])
       .mockImplementationOnce(() => ["-e", restartScript]);
 
@@ -420,12 +420,12 @@ describe("restartGatewayViaCli", () => {
 
     expect(await waitForProcessExit(spawnedPid, 3000)).toBe(true);
     expect(isGatewayRunning("work")).toBe(false);
-    expect(hermesCliArgsSpy).toHaveBeenNthCalledWith(1, [
+    expect(athenaCliArgsSpy).toHaveBeenNthCalledWith(1, [
       "--profile",
       "work",
       "gateway",
     ]);
-    expect(hermesCliArgsSpy).toHaveBeenNthCalledWith(2, [
+    expect(athenaCliArgsSpy).toHaveBeenNthCalledWith(2, [
       "--profile",
       "work",
       "gateway",
@@ -434,19 +434,19 @@ describe("restartGatewayViaCli", () => {
   });
 
   it("falls back to a native restart when a normal start does not become healthy", async () => {
-    hermesCliArgsSpy.mockImplementation(() => ["-e", "process.exit(0)"]);
+    athenaCliArgsSpy.mockImplementation(() => ["-e", "process.exit(0)"]);
     healthStatuses.push(...Array(20).fill(503), 200);
 
     await expect(
       startGatewayWithRecovery("work", 50, 5, 15000, 250),
     ).resolves.toBe(true);
 
-    expect(hermesCliArgsSpy).toHaveBeenNthCalledWith(1, [
+    expect(athenaCliArgsSpy).toHaveBeenNthCalledWith(1, [
       "--profile",
       "work",
       "gateway",
     ]);
-    expect(hermesCliArgsSpy).toHaveBeenNthCalledWith(2, [
+    expect(athenaCliArgsSpy).toHaveBeenNthCalledWith(2, [
       "--profile",
       "work",
       "gateway",
@@ -465,7 +465,7 @@ describe("restartGatewayViaCli", () => {
 
     expect(isGatewayRunning("work")).toBe(true);
     expect(readFileSync(profilePidFile(), "utf-8")).toBe(String(gatewayPid));
-    expect(hermesCliArgsSpy).not.toHaveBeenCalled();
+    expect(athenaCliArgsSpy).not.toHaveBeenCalled();
   });
 
   it("stops a spawned gateway before native restart recovery", async () => {
@@ -475,7 +475,7 @@ describe("restartGatewayViaCli", () => {
       `fs.writeFileSync(${JSON.stringify(pidFile)},String(process.pid));` +
       "setInterval(() => {}, 1000);";
 
-    hermesCliArgsSpy
+    athenaCliArgsSpy
       .mockImplementationOnce(() => ["-e", startScript])
       .mockImplementationOnce(() => {
         throw new Error("restart unavailable");
@@ -496,12 +496,12 @@ describe("restartGatewayViaCli", () => {
     }
 
     expect(exited).toBe(true);
-    expect(hermesCliArgsSpy).toHaveBeenNthCalledWith(1, [
+    expect(athenaCliArgsSpy).toHaveBeenNthCalledWith(1, [
       "--profile",
       "work",
       "gateway",
     ]);
-    expect(hermesCliArgsSpy).toHaveBeenNthCalledWith(2, [
+    expect(athenaCliArgsSpy).toHaveBeenNthCalledWith(2, [
       "--profile",
       "work",
       "gateway",

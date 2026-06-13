@@ -14,7 +14,7 @@ import {
   testMessagingPlatformStatus,
   validateMessagingPlatformUpdate,
 } from "../shared/messaging-platforms";
-import { getApiUrl, getRemoteAuthHeader } from "./hermes";
+import { getApiUrl, getRemoteAuthHeader } from "./athena";
 
 export function buildDesktopMessagingPlatforms(
   env: Record<string, string>,

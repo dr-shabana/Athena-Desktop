@@ -9,17 +9,17 @@ import {
 import { join, win32 } from "path";
 import { homedir } from "os";
 import { createConnection } from "net";
-import { getEnhancedPath, HERMES_HOME } from "./installer";
+import { getEnhancedPath, CORTEX_HOME } from "./installer";
 import { stripAnsi, safeWriteFile } from "./utils";
 import { getApiServerKey, getConnectionConfig, getModelConfig } from "./config";
 import http from "http";
 
-const HERMES_OFFICE_REPO = "https://github.com/fathah/hermes-office";
-const HERMES_OFFICE_DIR = join(HERMES_HOME, "hermes-office");
-const DEV_PID_FILE = join(HERMES_HOME, "claw3d-dev.pid");
-const ADAPTER_PID_FILE = join(HERMES_HOME, "claw3d-adapter.pid");
-const PORT_FILE = join(HERMES_HOME, "claw3d-port");
-const WS_URL_FILE = join(HERMES_HOME, "claw3d-ws-url");
+const CORTEX_OFFICE_REPO = "https://github.com/dr-shabana/athena-office";
+const CORTEX_OFFICE_DIR = join(CORTEX_HOME, "athena-office");
+const DEV_PID_FILE = join(CORTEX_HOME, "claw3d-dev.pid");
+const ADAPTER_PID_FILE = join(CORTEX_HOME, "claw3d-adapter.pid");
+const PORT_FILE = join(CORTEX_HOME, "claw3d-port");
+const WS_URL_FILE = join(CORTEX_HOME, "claw3d-ws-url");
 const DEFAULT_PORT = 3000;
 const OLD_DEFAULT_WS_URL = "ws://localhost:18789";
 const DEFAULT_ADAPTER_PORT = 18989;
@@ -49,11 +49,11 @@ interface NpmInvocationOptions {
   fileExists?: (path: string) => boolean;
 }
 
-type Claw3dScript = "dev" | "hermes-adapter";
+type Claw3dScript = "dev" | "athena-adapter";
 
 const CLAW3D_SCRIPT_ARGS: Record<Claw3dScript, string[]> = {
   dev: ["server/index.js", "--dev"],
-  "hermes-adapter": ["server/hermes-gateway-adapter.js"],
+  "athena-adapter": ["server/athena-gateway-adapter.js"],
 };
 
 export function isWindowsCommandScript(command: string): boolean {
@@ -256,10 +256,10 @@ export function adapterPortFromWsUrl(url: string): number {
 }
 
 /**
- * The model Hermes Office should default to. Office runs against the same
+ * The model Athena Office should default to. Office runs against the same
  * gateway as the desktop chat, so it should use the same configured model
- * rather than a generic `hermes` agent the user never selected (issue
- * #256). Falls back to `hermes` only when no model is configured.
+ * rather than a generic `athena` agent the user never selected (issue
+ * #256). Falls back to `athena` only when no model is configured.
  */
 function resolveOfficeModel(): string {
   try {
@@ -268,12 +268,12 @@ function resolveOfficeModel(): string {
   } catch {
     /* no model configured — fall through to the default */
   }
-  return "hermes";
+  return "athena";
 }
 
 /**
- * Build the `.env` Hermes One writes into the hermes-office directory.
- * Exported so the contents (notably `HERMES_MODEL`, issue #256) can be
+ * Build the `.env` Athena Q writes into the athena-office directory.
+ * Exported so the contents (notably `CORTEX_MODEL`, issue #256) can be
  * unit tested without a live Office install.
  */
 export function buildOfficeEnv(opts: {
@@ -285,17 +285,17 @@ export function buildOfficeEnv(opts: {
 }): string {
   const adapterPort = opts.adapterPort ?? adapterPortFromWsUrl(opts.url);
   return [
-    "# Auto-configured by Hermes One",
+    "# Auto-configured by Athena Q",
     `PORT=${opts.port}`,
     `HOST=127.0.0.1`,
     `NEXT_PUBLIC_GATEWAY_URL=${opts.url}`,
     `CLAW3D_GATEWAY_URL=${opts.url}`,
     `CLAW3D_GATEWAY_TOKEN=${opts.apiKey}`,
-    `CLAW3D_GATEWAY_ADAPTER_TYPE=hermes`,
-    `HERMES_API_KEY=${opts.apiKey}`,
-    `HERMES_ADAPTER_PORT=${adapterPort}`,
-    `HERMES_MODEL=${opts.model || "hermes"}`,
-    `HERMES_AGENT_NAME=Hermes`,
+    `CLAW3D_GATEWAY_ADAPTER_TYPE=athena`,
+    `CORTEX_API_KEY=${opts.apiKey}`,
+    `CORTEX_ADAPTER_PORT=${adapterPort}`,
+    `CORTEX_MODEL=${opts.model || "athena"}`,
+    `CORTEX_AGENT_NAME=Athena`,
     "",
   ].join("\n");
 }
@@ -312,29 +312,29 @@ export function buildOfficeSettings(
   const existingProfiles = isRecord(existingGateway.profiles)
     ? existingGateway.profiles
     : {};
-  const hermesProfile = {
+  const athenaProfile = {
     url: opts.url,
     token: opts.apiKey,
   };
   return {
     ...existing,
     // Keep the legacy top-level fields for older Office builds and rollback.
-    adapter: "hermes",
+    adapter: "athena",
     url: opts.url,
     token: opts.apiKey,
     gateway: {
       ...existingGateway,
       url: opts.url,
       token: opts.apiKey,
-      adapterType: "hermes",
+      adapterType: "athena",
       profiles: {
         ...existingProfiles,
-        hermes: hermesProfile,
+        athena: athenaProfile,
       },
       lastKnownGood: {
         url: opts.url,
         token: opts.apiKey,
-        adapterType: "hermes",
+        adapterType: "athena",
       },
     },
   };
@@ -383,8 +383,8 @@ function writeClaw3dSettings(wsUrl?: string): void {
 
   // Write .env in claw3d directory
   try {
-    if (existsSync(HERMES_OFFICE_DIR)) {
-      const envPath = join(HERMES_OFFICE_DIR, ".env");
+    if (existsSync(CORTEX_OFFICE_DIR)) {
+      const envPath = join(CORTEX_OFFICE_DIR, ".env");
       writeOfficeFileIfChanged(
         envPath,
         buildOfficeEnv({
@@ -438,7 +438,7 @@ export interface Claw3dStatus {
   portInUse: boolean;
   wsUrl: string;
   error: string; // last error from either process
-  // Populated in SSH tunnel mode when a Claw3D / hermes-office service is
+  // Populated in SSH tunnel mode when a Claw3D / athena-office service is
   // running on the remote host. Renderer should prefer this over launching
   // a local dev server. Null/undefined when not in SSH mode or when the
   // remote service is unreachable.
@@ -502,7 +502,7 @@ function isAdapterRunning(): boolean {
 
 // Probe an HTTP endpoint with a short timeout. Returns true if any response
 // arrives (we don't care about the status code — even a 404 confirms a
-// listener). Used to detect remote Claw3D / hermes-office without dragging
+// listener). Used to detect remote Claw3D / athena-office without dragging
 // in the SSH tunnel machinery.
 function probeHttp(url: string, timeoutMs = 1500): Promise<boolean> {
   return new Promise((resolve) => {
@@ -553,8 +553,8 @@ export async function waitForClaw3dReady(
 }
 
 export async function getClaw3dStatus(): Promise<Claw3dStatus> {
-  const cloned = existsSync(join(HERMES_OFFICE_DIR, "package.json"));
-  const installed = existsSync(join(HERMES_OFFICE_DIR, "node_modules"));
+  const cloned = existsSync(join(CORTEX_OFFICE_DIR, "package.json"));
+  const installed = existsSync(join(CORTEX_OFFICE_DIR, "node_modules"));
   if (installed) {
     writeClaw3dSettings();
   }
@@ -565,7 +565,7 @@ export async function getClaw3dStatus(): Promise<Claw3dStatus> {
   const adapterUp = isAdapterRunning();
   const error = devServerError || adapterError;
 
-  // SSH tunnel mode: probe the remote host for a Claw3D / hermes-office
+  // SSH tunnel mode: probe the remote host for a Claw3D / athena-office
   // service. The official systemd unit binds Next.js to :3000 by default,
   // so we try the SSH host at the saved Claw3D port. When reachable, the
   // renderer can point its webview at it instead of asking the user to
@@ -700,15 +700,15 @@ export async function setupClaw3d(
   const git = resolveCommand("git", env.PATH);
 
   // Step 1: Clone (or pull if already cloned)
-  const cloned = existsSync(join(HERMES_OFFICE_DIR, "package.json"));
+  const cloned = existsSync(join(CORTEX_OFFICE_DIR, "package.json"));
 
   if (!cloned) {
     emit(1, "Cloning Claw3D repository...", "Cloning from GitHub...\n");
     await new Promise<void>((resolve, reject) => {
       const gitClone = createCommandInvocation(git, [
         "clone",
-        HERMES_OFFICE_REPO,
-        HERMES_OFFICE_DIR,
+        CORTEX_OFFICE_REPO,
+        CORTEX_OFFICE_DIR,
       ]);
       const proc = spawn(gitClone.command, gitClone.args, {
         cwd: homedir(),
@@ -746,7 +746,7 @@ export async function setupClaw3d(
     await new Promise<void>((resolve) => {
       const gitPull = createCommandInvocation(git, ["pull", "--ff-only"]);
       const proc = spawn(gitPull.command, gitPull.args, {
-        cwd: HERMES_OFFICE_DIR,
+        cwd: CORTEX_OFFICE_DIR,
         env,
         stdio: ["ignore", "pipe", "pipe"],
         windowsHide: true,
@@ -774,7 +774,7 @@ export async function setupClaw3d(
 
   await new Promise<void>((resolve, reject) => {
     const proc = spawn(npm.command, npm.args, {
-      cwd: HERMES_OFFICE_DIR,
+      cwd: CORTEX_OFFICE_DIR,
       env,
       stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
@@ -833,7 +833,7 @@ function killProcessTree(proc: ChildProcess): void {
 
 export function startDevServer(): boolean {
   if (isDevServerRunning()) return true;
-  if (!existsSync(join(HERMES_OFFICE_DIR, "node_modules"))) return false;
+  if (!existsSync(join(CORTEX_OFFICE_DIR, "node_modules"))) return false;
 
   devServerError = "";
   devServerLogs = "";
@@ -843,13 +843,13 @@ export function startDevServer(): boolean {
     PATH: getEnhancedPath(),
     HOME: homedir(),
     TERM: "dumb",
-    HERMES_API_KEY: getApiServerKey(),
+    CORTEX_API_KEY: getApiServerKey(),
     PORT: String(port),
   };
   const node = resolveCommand("node", env.PATH);
   const devScript = createClaw3dScriptInvocation("dev", node.command);
   const proc = spawn(devScript.command, devScript.args, {
-    cwd: HERMES_OFFICE_DIR,
+    cwd: CORTEX_OFFICE_DIR,
     env,
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
@@ -914,28 +914,28 @@ export function stopDevServer(): void {
 
 export function startAdapter(): boolean {
   if (isAdapterRunning()) return true;
-  if (!existsSync(join(HERMES_OFFICE_DIR, "node_modules"))) return false;
+  if (!existsSync(join(CORTEX_OFFICE_DIR, "node_modules"))) return false;
 
   adapterError = "";
   adapterLogs = "";
-  // The hermes-gateway-adapter authenticates to the Hermes gateway with
-  // `Authorization: Bearer ${HERMES_API_KEY}`. Without it, a gateway that
+  // The athena-gateway-adapter authenticates to the Athena gateway with
+  // `Authorization: Bearer ${CORTEX_API_KEY}`. Without it, a gateway that
   // has an API_SERVER_KEY configured rejects the Office chat with HTTP 401.
   const env = {
     ...process.env,
     PATH: getEnhancedPath(),
     HOME: homedir(),
     TERM: "dumb",
-    HERMES_API_KEY: getApiServerKey(),
-    HERMES_ADAPTER_PORT: String(adapterPortFromWsUrl(getSavedWsUrl())),
+    CORTEX_API_KEY: getApiServerKey(),
+    CORTEX_ADAPTER_PORT: String(adapterPortFromWsUrl(getSavedWsUrl())),
   };
   const node = resolveCommand("node", env.PATH);
   const adapterScript = createClaw3dScriptInvocation(
-    "hermes-adapter",
+    "athena-adapter",
     node.command,
   );
   const proc = spawn(adapterScript.command, adapterScript.args, {
-    cwd: HERMES_OFFICE_DIR,
+    cwd: CORTEX_OFFICE_DIR,
     env,
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
@@ -965,7 +965,7 @@ export function startAdapter(): boolean {
 
   proc.on("close", (code) => {
     if (code && code !== 0 && !adapterError) {
-      adapterError = `Hermes adapter exited with code ${code}`;
+      adapterError = `Athena adapter exited with code ${code}`;
     }
     adapterProcess = null;
     cleanupPid(ADAPTER_PID_FILE);
@@ -997,7 +997,7 @@ export function stopAdapter(): void {
 }
 
 export function startAll(): { success: boolean; error?: string } {
-  if (!existsSync(join(HERMES_OFFICE_DIR, "node_modules"))) {
+  if (!existsSync(join(CORTEX_OFFICE_DIR, "node_modules"))) {
     return {
       success: false,
       error: "Claw3D is not installed. Please install it first.",
@@ -1023,7 +1023,7 @@ export function startAll(): { success: boolean; error?: string } {
   // Start adapter
   const adapterOk = startAdapter();
   if (!adapterOk) {
-    return { success: false, error: "Failed to start Hermes adapter" };
+    return { success: false, error: "Failed to start Athena adapter" };
   }
 
   return { success: true };

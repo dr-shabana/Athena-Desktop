@@ -25,8 +25,8 @@ interface Report {
   summary: { errors: number; warnings: number; infos: number };
 }
 
-const DISMISS_STORAGE_KEY = "hermes-config-health-dismissed";
-export const CONFIG_HEALTH_UPDATED_EVENT = "hermes-config-health-updated";
+const DISMISS_STORAGE_KEY = "athena-config-health-dismissed";
+export const CONFIG_HEALTH_UPDATED_EVENT = "athena-config-health-updated";
 
 function readDismissedReportStamp(): number {
   try {
@@ -82,7 +82,7 @@ export function ConfigHealthBanner({
     let cancelled = false;
     (async (): Promise<void> => {
       try {
-        const r = (await window.hermesAPI.getConfigHealth(profile)) as
+        const r = (await window.athenaAPI.getConfigHealth(profile)) as
           | (Report & { ranAt: number })
           | null;
         if (!cancelled) setReport(r);
@@ -164,13 +164,13 @@ export function ConfigHealthBanner({
     if (!apiKeyValue.trim()) return;
     setSaving(true);
     try {
-      await window.hermesAPI.setEnv(
+      await window.athenaAPI.setEnv(
         "API_SERVER_KEY",
         apiKeyValue.trim(),
         profile,
       );
       // Re-run the health check so the banner disappears.
-      const r = (await window.hermesAPI.rerunConfigHealth(profile)) as
+      const r = (await window.athenaAPI.rerunConfigHealth(profile)) as
         | (Report & { ranAt: number })
         | null;
       setReport(r);

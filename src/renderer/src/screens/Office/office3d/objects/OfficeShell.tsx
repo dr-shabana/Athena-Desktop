@@ -2,7 +2,7 @@ import { Suspense, memo, useMemo } from "react";
 import { useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import woodenTableGlbUrl from "../assets/wooden_table.glb?url";
-import hermesHqLogoUrl from "../assets/images/hermes-one-hq.webp";
+import athenaHqLogoUrl from "../assets/images/athena-one-hq.webp";
 import { WORLD_W, WORLD_H, SCALE } from "../core/constants";
 import { toWorld } from "../core/geometry";
 import { glbClone, normalizeFootprint } from "../core/glb";
@@ -69,9 +69,9 @@ function NorthWall({ palette }: { palette: WorldPalette }): React.JSX.Element {
   );
 }
 
-/** HERMES HQ logo decal on the office's south wall. */
+/** CORTEX HQ logo decal on the office's south wall. */
 function OfficeLogo(): React.JSX.Element {
-  const texture = useTexture(hermesHqLogoUrl, (t) => {
+  const texture = useTexture(athenaHqLogoUrl, (t) => {
     t.colorSpace = THREE.SRGBColorSpace;
   });
   // Logo aspect ratio ≈ 4.3 : 1

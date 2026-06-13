@@ -24,10 +24,10 @@ function LocaleSwitcherProbe(): React.JSX.Element {
   );
 }
 
-function installHermesAPI(
-  api: Pick<Window["hermesAPI"], "getLocale" | "setLocale">,
+function installAthenaAPI(
+  api: Pick<Window["athenaAPI"], "getLocale" | "setLocale">,
 ): void {
-  Object.defineProperty(window, "hermesAPI", {
+  Object.defineProperty(window, "athenaAPI", {
     configurable: true,
     value: api,
   });
@@ -38,7 +38,7 @@ describe("I18nProvider", () => {
   const setLocale = vi.fn().mockResolvedValue(DEFAULT_ACTIVE_LOCALE);
 
   beforeEach(() => {
-    installHermesAPI({
+    installAthenaAPI({
       getLocale,
       setLocale,
     });
@@ -51,7 +51,7 @@ describe("I18nProvider", () => {
   afterEach(() => {
     setSharedLocale(DEFAULT_ACTIVE_LOCALE);
     try {
-      localStorage.removeItem("hermes-locale");
+      localStorage.removeItem("athena-locale");
     } catch {
       /* ignore */
     }
@@ -66,7 +66,7 @@ describe("I18nProvider", () => {
       );
     });
 
-    expect(await screen.findByText("Welcome to Hermes")).toBeInTheDocument();
+    expect(await screen.findByText("Welcome to Athena")).toBeInTheDocument();
   });
 
   it("renders Spanish translations after switching locale", async () => {
@@ -83,7 +83,7 @@ describe("I18nProvider", () => {
     });
 
     expect(setLocale).toHaveBeenLastCalledWith("es");
-    expect(await screen.findByText("Bienvenido a Hermes")).toBeInTheDocument();
+    expect(await screen.findByText("Bienvenido a Athena")).toBeInTheDocument();
   });
 
   it("does not overwrite the main-process locale with the startup fallback", async () => {
@@ -109,6 +109,6 @@ describe("I18nProvider", () => {
     });
 
     expect(setLocale).toHaveBeenLastCalledWith("es");
-    expect(await screen.findByText("Bienvenido a Hermes")).toBeInTheDocument();
+    expect(await screen.findByText("Bienvenido a Athena")).toBeInTheDocument();
   });
 });

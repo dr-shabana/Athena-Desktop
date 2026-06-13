@@ -2,14 +2,14 @@ import { existsSync } from "fs";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { execFile } from "child_process";
-import { HERMES_HOME, HERMES_PYTHON, hermesCliArgs } from "./installer";
+import { CORTEX_HOME, CORTEX_PYTHON, athenaCliArgs } from "./installer";
 import { profileHome } from "./utils";
 import {
   isRemoteMode,
   getApiUrl,
   getRemoteAuthHeader,
   normaliseRemoteUrl,
-} from "./hermes";
+} from "./athena";
 import { getConnectionConfig } from "./config";
 import { HIDDEN_SUBPROCESS_OPTIONS } from "./process-options";
 
@@ -131,7 +131,7 @@ async function remoteJsonError(res: Response): Promise<string> {
 
 /**
  * Read cron jobs from the jobs.json file (async to avoid blocking the main process).
- * In remote mode, fetches from the Hermes API server's /api/jobs endpoint instead.
+ * In remote mode, fetches from the Athena API server's /api/jobs endpoint instead.
  */
 export async function listCronJobs(
   includeDisabled = true,
@@ -185,13 +185,13 @@ export async function listCronJobs(
 }
 
 /**
- * Run a hermes cron CLI command and return the result.
+ * Run a athena cron CLI command and return the result.
  */
 function runCronCommand(
   args: string[],
   profile?: string,
 ): Promise<{ success: boolean; output: string; error?: string }> {
-  const cliArgs = hermesCliArgs();
+  const cliArgs = athenaCliArgs();
   if (profile && profile !== "default") {
     cliArgs.push("-p", profile);
   }
@@ -199,10 +199,10 @@ function runCronCommand(
 
   return new Promise((resolve) => {
     execFile(
-      HERMES_PYTHON,
+      CORTEX_PYTHON,
       cliArgs,
       {
-        cwd: join(HERMES_HOME, "hermes-agent"),
+        cwd: join(CORTEX_HOME, "athena-agent"),
         timeout: 15000,
         ...HIDDEN_SUBPROCESS_OPTIONS,
       },

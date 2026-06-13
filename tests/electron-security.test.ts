@@ -51,9 +51,9 @@ describe("Electron main process hardening", () => {
     expect(preloadSrc).not.toContain("@electron-toolkit/preload");
   });
 
-  it("runs hermes doctor without a shell-built command string", () => {
+  it("runs athena doctor without a shell-built command string", () => {
     expect(installerSrc).toContain(
-      'execFileSync(HERMES_PYTHON, hermesCliArgs(["doctor"])',
+      'execFileSync(CORTEX_PYTHON, athenaCliArgs(["doctor"])',
     );
     expect(installerSrc).not.toContain("execSync(`");
   });

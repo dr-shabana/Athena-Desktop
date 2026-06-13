@@ -24,7 +24,7 @@ describe("detectProviderFromUrl", () => {
       "xiaomi",
     );
     expect(
-      detectProviderFromUrl("https://inference-api.nousresearch.com/v1"),
+      detectProviderFromUrl("https://inference-api.dr-shabana.com/v1"),
     ).toBe("nous");
     expect(
       detectProviderFromUrl(
@@ -42,7 +42,7 @@ describe("detectProviderFromUrl", () => {
     expect(detectProviderFromUrl("http://192.168.1.50:11434")).toBe("ollama");
     expect(detectProviderFromUrl("http://10.0.0.5:8000")).toBe("vllm");
     expect(detectProviderFromUrl("http://172.20.0.3:1234")).toBe("lmstudio");
-    expect(detectProviderFromUrl("http://hermes.local:8080")).toBe(
+    expect(detectProviderFromUrl("http://athena.local:8080")).toBe(
       "llamacpp",
     );
   });
@@ -50,7 +50,7 @@ describe("detectProviderFromUrl", () => {
   it("identifies private-network and loopback addresses with unknown ports as custom", () => {
     expect(detectProviderFromUrl("http://localhost:9999")).toBe("custom");
     expect(detectProviderFromUrl("http://192.168.1.50:9999")).toBe("custom");
-    expect(detectProviderFromUrl("http://hermes.local:9999")).toBe("custom");
+    expect(detectProviderFromUrl("http://athena.local:9999")).toBe("custom");
   });
 
   it("identifies well-known local-LLM ports on any host", () => {

@@ -41,14 +41,14 @@ function App(): React.JSX.Element {
 
     try {
       setSplashStatus("Checking connection…");
-      const conn = await window.hermesAPI.getConnectionConfig();
+      const conn = await window.athenaAPI.getConnectionConfig();
       isRemote = conn.mode === "remote" || conn.mode === "ssh";
       setConnectionMode(conn.mode);
 
       if (conn.mode === "ssh" && conn.ssh) {
         setSplashStatus("Starting SSH tunnel…");
         try {
-          await window.hermesAPI.startSshTunnel();
+          await window.athenaAPI.startSshTunnel();
           next = "main";
         } catch (tunnelErr) {
           error = `SSH tunnel failed to start: ${(tunnelErr as Error).message}`;
@@ -56,16 +56,16 @@ function App(): React.JSX.Element {
         }
       } else if (conn.mode === "remote" && conn.remoteUrl) {
         setSplashStatus("Testing remote connection…");
-        const ok = await window.hermesAPI.testRemoteConnection(conn.remoteUrl);
+        const ok = await window.athenaAPI.testRemoteConnection(conn.remoteUrl);
         if (ok) {
           next = "main";
         } else {
-          error = `Cannot reach remote Hermes at ${conn.remoteUrl}. Check the URL or switch to local mode.`;
+          error = `Cannot reach remote Athena at ${conn.remoteUrl}. Check the URL or switch to local mode.`;
           next = "welcome";
         }
       } else {
         setSplashStatus("Checking local install…");
-        const status = await window.hermesAPI.checkInstall();
+        const status = await window.athenaAPI.checkInstall();
         if (!status.installed) {
           next = "welcome";
         } else if (!status.hasApiKey) {
@@ -81,11 +81,11 @@ function App(): React.JSX.Element {
           setSplashStatus("Checking configuration…");
           await Promise.race([
             Promise.all([
-              window.hermesAPI
+              window.athenaAPI
                 .getConfigHealth()
                 .catch(() => null)
                 .then(() => undefined),
-              window.hermesAPI
+              window.athenaAPI
                 .gatewayStatus()
                 .catch(() => null)
                 .then(() => undefined),
@@ -112,12 +112,12 @@ function App(): React.JSX.Element {
     // install is broken, surface the warning then — don't block startup.
     //
     // Skip for remote-mode connections: verifyInstall() probes the LOCAL
-    // Python + script paths (HERMES_PYTHON / HERMES_SCRIPT in installer.ts),
+    // Python + script paths (CORTEX_PYTHON / CORTEX_SCRIPT in installer.ts),
     // which don't exist on machines that only use a remote backend. Without
     // this guard the user is bounced back to Welcome with an "installBroken"
     // error immediately after a successful remote connect. (#47, #41, #30)
     if ((next === "main" || next === "setup") && !isRemote) {
-      window.hermesAPI.verifyInstall().then((ok) => {
+      window.athenaAPI.verifyInstall().then((ok) => {
         // Files exist (checkInstall passed) but the probe failed. Surface
         // a soft warning instead of bouncing to Welcome — see #130.
         if (!ok) setVerifyWarning(true);
@@ -160,7 +160,7 @@ function App(): React.JSX.Element {
   }
 
   async function handleSwitchToLocal(): Promise<void> {
-    await window.hermesAPI.setConnectionConfig("local", "", "");
+    await window.athenaAPI.setConnectionConfig("local", "", "");
     setConnectionMode("local");
     handleRecheck();
   }

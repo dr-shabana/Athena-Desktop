@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("../src/main/hermes", () => ({
+vi.mock("../src/main/athena", () => ({
   getApiUrl: () => "http://127.0.0.1:8642",
   getRemoteAuthHeader: () => ({}),
   isRemoteMode: () => false,
@@ -20,16 +20,16 @@ import {
 } from "../src/main/mcp-servers";
 
 describe("MCP server config management", () => {
-  it("parses the local hermes mcp catalog table output", () => {
+  it("parses the local athena mcp catalog table output", () => {
     const entries = parseCatalogOutput(`
   MCP Catalog + configured servers:
 
   Name               Status                   Description
   ------------------ ------------------------ -----------
   linear             available                Find, create, and update Linear issues, projects, and comments.
-  n8n                available                Manage and inspect n8n workflows from Hermes (stdio bridge, no public port).
+  n8n                available                Manage and inspect n8n workflows from Athena (stdio bridge, no public port).
 
-  Install: hermes mcp install <name>    Picker: hermes mcp
+  Install: athena mcp install <name>    Picker: athena mcp
 `);
 
     expect(entries).toMatchObject([
@@ -42,7 +42,7 @@ describe("MCP server config management", () => {
       {
         name: "n8n",
         description:
-          "Manage and inspect n8n workflows from Hermes (stdio bridge, no public port).",
+          "Manage and inspect n8n workflows from Athena (stdio bridge, no public port).",
         installed: false,
       },
     ]);

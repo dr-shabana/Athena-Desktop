@@ -19,7 +19,7 @@ import { tmpdir } from "os";
  * Behavior contract:
  *  - Migration writes to .env (idempotent, additive only).
  *  - Original copy in config.yaml is left alone.
- *  - Logged to ~/.hermes/logs/config-fixes.log.
+ *  - Logged to ~/.cortex/logs/config-fixes.log.
  *  - If .env already has API_SERVER_KEY, the migration is a no-op
  *    (the .env value wins by precedence — the resolver would already
  *    have returned it).
@@ -27,13 +27,13 @@ import { tmpdir } from "os";
  *    sibling profile's .env.
  */
 
-const TEST_DIR = join(tmpdir(), `hermes-test-migration-${Date.now()}`);
+const TEST_DIR = join(tmpdir(), `athena-test-migration-${Date.now()}`);
 
 async function freshConfig(
   home: string,
 ): Promise<typeof import("../src/main/config")> {
   vi.resetModules();
-  process.env.HERMES_HOME = home;
+  process.env.CORTEX_HOME = home;
   return await import("../src/main/config");
 }
 
@@ -42,7 +42,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  delete process.env.HERMES_HOME;
+  delete process.env.CORTEX_HOME;
   vi.resetModules();
   rmSync(TEST_DIR, { recursive: true, force: true });
 });
@@ -129,7 +129,7 @@ describe("getApiServerKey migration (default profile)", () => {
     expect(envContent).not.toMatch(/sk-from-yaml/);
   });
 
-  it("writes a JSONL audit entry to ~/.hermes/logs/config-fixes.log", async () => {
+  it("writes a JSONL audit entry to ~/.cortex/logs/config-fixes.log", async () => {
     writeFileSync(
       join(TEST_DIR, "config.yaml"),
       ["api_server:", "  token: sk-audit-trail-test", ""].join("\n"),

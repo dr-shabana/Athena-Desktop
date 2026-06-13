@@ -1,9 +1,9 @@
 import { execFile } from "child_process";
 import { existsSync, readFileSync } from "fs";
 import { profilePaths, safeWriteFile } from "./utils";
-import { getApiUrl, getRemoteAuthHeader, isRemoteMode } from "./hermes";
+import { getApiUrl, getRemoteAuthHeader, isRemoteMode } from "./athena";
 import { getApiServerKey } from "./config";
-import { getEnhancedPath, HERMES_PYTHON, hermesCliArgs } from "./installer";
+import { getEnhancedPath, CORTEX_PYTHON, athenaCliArgs } from "./installer";
 
 export type McpTransport = "http" | "stdio" | "unknown";
 
@@ -57,7 +57,7 @@ interface McpBlock {
   lines: string[];
 }
 
-interface HermesCliResult {
+interface AthenaCliResult {
   stdout: string;
   stderr: string;
 }
@@ -80,19 +80,19 @@ function writeConfig(content: string, profile?: string): void {
   safeWriteFile(file, content.endsWith("\n") ? content : `${content}\n`);
 }
 
-function runHermesMcpCli(
+function runAthenaMcpCli(
   args: string[],
   profile?: string,
-): Promise<HermesCliResult> {
+): Promise<AthenaCliResult> {
   return new Promise((resolve, reject) => {
     const child = execFile(
-      HERMES_PYTHON,
-      hermesCliArgs(["mcp", ...args]),
+      CORTEX_PYTHON,
+      athenaCliArgs(["mcp", ...args]),
       {
         cwd: profilePaths(profile).home,
         env: {
           ...process.env,
-          HERMES_HOME: profilePaths(profile).home,
+          CORTEX_HOME: profilePaths(profile).home,
           PATH: getEnhancedPath(),
         },
         timeout: 30000,
@@ -553,7 +553,7 @@ export function parseCatalogOutput(output: string): McpCatalogEntry[] {
     entries.push({
       name,
       description: descriptionParts.join(" "),
-      source: "hermes-agent",
+      source: "athena-agent",
       transport: "unknown",
       authType: "",
       requiredEnv: [],
@@ -629,12 +629,12 @@ function isNotFoundError(err: unknown): boolean {
 
 function unsupportedMcpApiMessage(feature: "catalog" | "install" | "test"): string {
   if (feature === "catalog") {
-    return "MCP catalog is not available from this Hermes Agent gateway yet. Add a custom MCP server manually.";
+    return "MCP catalog is not available from this Athena Agent gateway yet. Add a custom MCP server manually.";
   }
   if (feature === "install") {
-    return "MCP catalog install is not available from this Hermes Agent gateway yet. Add a custom MCP server manually.";
+    return "MCP catalog install is not available from this Athena Agent gateway yet. Add a custom MCP server manually.";
   }
-  return "MCP server testing is not available from this Hermes Agent gateway yet.";
+  return "MCP server testing is not available from this Athena Agent gateway yet.";
 }
 
 export async function listMcpServers(profile?: string): Promise<McpServerInfo[]> {
@@ -735,7 +735,7 @@ export async function testMcpServer(
 ): Promise<McpOperationResult> {
   try {
     if (!isRemoteMode()) {
-      const result = await runHermesMcpCli(["test", name], profile);
+      const result = await runAthenaMcpCli(["test", name], profile);
       return {
         success: true,
         tools: parseMcpTestTools(result.stdout),
@@ -765,7 +765,7 @@ export async function listMcpCatalog(
 ): Promise<{ entries: McpCatalogEntry[]; diagnostics: unknown[]; error?: string }> {
   try {
     if (!isRemoteMode()) {
-      const result = await runHermesMcpCli(["catalog"], profile);
+      const result = await runAthenaMcpCli(["catalog"], profile);
       return {
         entries: parseCatalogOutput(result.stdout),
         diagnostics: result.stderr.trim() ? [result.stderr.trim()] : [],
@@ -825,7 +825,7 @@ export async function installMcpCatalogEntry(
 ): Promise<McpOperationResult> {
   try {
     if (!isRemoteMode()) {
-      await runHermesMcpCli(["install", name], profile);
+      await runAthenaMcpCli(["install", name], profile);
       return { success: true };
     }
 

@@ -14,7 +14,7 @@ interface OfficeProps {
 
 // The CEO assignment is desktop-local UI state (one agent at a time), persisted
 // across reloads like the app's other renderer preferences (theme, locale).
-const CEO_STORAGE_KEY = "hermes:office:ceo";
+const CEO_STORAGE_KEY = "athena:office:ceo";
 
 function readStoredCeo(): string | null {
   try {
@@ -26,7 +26,7 @@ function readStoredCeo(): string | null {
 
 /**
  * The Office tab. Renders a native, in-renderer 3D office (no external dev
- * server / webview) where each Hermes profile appears as an interactive agent.
+ * server / webview) where each Athena profile appears as an interactive agent.
  */
 function Office({ visible }: OfficeProps): React.JSX.Element {
   const { t } = useI18n();
@@ -57,7 +57,7 @@ function Office({ visible }: OfficeProps): React.JSX.Element {
   const loadAgents = useCallback(async () => {
     setLoading(true);
     try {
-      const profiles = await window.hermesAPI.listProfiles();
+      const profiles = await window.athenaAPI.listProfiles();
       setAgents(profilesToOfficeAgents(profiles));
     } catch {
       setAgents([]);
@@ -80,7 +80,7 @@ function Office({ visible }: OfficeProps): React.JSX.Element {
   // never toggle `loading`, so this stays flicker-free.
   const refreshAgentStatuses = useCallback(async () => {
     try {
-      const profiles = await window.hermesAPI.listProfiles();
+      const profiles = await window.athenaAPI.listProfiles();
       const next = profilesToOfficeAgents(profiles);
       setAgents((prev) => {
         const prevById = new Map(prev.map((a) => [a.id, a]));

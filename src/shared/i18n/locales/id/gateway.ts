@@ -14,5 +14,5 @@ export default {
   startExited: "Gateway sudah dimulai, tetapi berhenti sebelum siap.",
   checkLog: "Periksa log gateway:",
   gatewayHint:
-    "Menghubungkan Hermes ke Telegram, Discord, Slack, dan platform lainnya",
+    "Menghubungkan Athena ke Telegram, Discord, Slack, dan platform lainnya",
 } as const;

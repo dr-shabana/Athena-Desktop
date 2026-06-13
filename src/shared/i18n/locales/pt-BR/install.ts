@@ -3,7 +3,7 @@ export default {
   startingInstall: "Iniciando instalação",
   installationComplete: "Instalação Concluída",
   installationFailed: "Falha na Instalação",
-  installingHermes: "Instalando Hermes Agent",
+  installingAthena: "Instalando Athena Agent",
   installationFailedHint:
     "A instalação falhou. Por favor, tente novamente ou instale via terminal.",
   retryInstallation: "Tentar Instalação Novamente",
@@ -13,22 +13,22 @@ export default {
   waitingToStart: "Aguardando para iniciar...",
   continueToSetup: "Continuar para a Configuração",
   confirmTitle: "Antes de instalar",
-  confirmLocationLabel: "O Hermes será instalado em:",
+  confirmLocationLabel: "O Athena será instalado em:",
   confirmFresh:
     "Nenhuma instalação existente foi encontrada aqui — uma cópia nova será configurada.",
   confirmUpdate:
-    "Há uma instalação do Hermes aqui — ela será atualizada para a versão mais recente.",
+    "Há uma instalação do Athena aqui — ela será atualizada para a versão mais recente.",
   confirmReplace:
-    "Existe uma pasta aqui, mas não é uma instalação válida do Hermes — instalar irá excluí-la e substituí-la.",
+    "Existe uma pasta aqui, mas não é uma instalação válida do Athena — instalar irá excluí-la e substituí-la.",
   confirmNotInherited:
-    "Se você instalou o Hermes em outro lugar, ou pela linha de comando, ela não será aproveitada.",
-  confirmInstallBtn: "Instalar o Hermes",
+    "Se você instalou o Athena em outro lugar, ou pela linha de comando, ela não será aproveitada.",
+  confirmInstallBtn: "Instalar o Athena",
   useExistingBtn: "Usar uma instalação existente",
   useExistingHint:
-    "Selecione a pasta que contém sua instalação existente do Hermes (a pasta que contém a pasta hermes-agent).",
+    "Selecione a pasta que contém sua instalação existente do Athena (a pasta que contém a pasta athena-agent).",
   useExistingInvalid:
-    "Nenhuma instalação utilizável do Hermes foi encontrada nessa pasta.",
+    "Nenhuma instalação utilizável do Athena foi encontrada nessa pasta.",
   useExistingDone:
-    "Instalação existente definida — feche e reabra o Hermes para aplicá-la.",
-  useExistingQuitBtn: "Sair do Hermes",
+    "Instalação existente definida — feche e reabra o Athena para aplicá-la.",
+  useExistingQuitBtn: "Sair do Athena",
 } as const;

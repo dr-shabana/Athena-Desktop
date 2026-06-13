@@ -9,7 +9,7 @@ vi.mock("../src/main/locale", () => ({
 }));
 
 import {
-  buildRemoteHermesCmd,
+  buildRemoteAthenaCmd,
   sshSetConfigValue,
   buildGatewayStartCommand,
   buildGatewayStopCommand,
@@ -25,19 +25,19 @@ function systemdBranch(command: string): string {
 const sshConfig: SshConfig = {
   host: "example.test",
   port: 22,
-  username: "hermes",
+  username: "athena",
   keyPath: "",
   remotePort: 8642,
   localPort: 18642,
 };
 
-function runWithHermesShim(command: string): Buffer {
-  const home = mkdtempSync(join(tmpdir(), "hermes-ssh-cmd-home-"));
+function runWithAthenaShim(command: string): Buffer {
+  const home = mkdtempSync(join(tmpdir(), "athena-ssh-cmd-home-"));
   const bin = join(home, "bin");
   mkdirSync(bin, { recursive: true });
-  const hermes = join(bin, "hermes");
+  const athena = join(bin, "athena");
   writeFileSync(
-    hermes,
+    athena,
     [
       "#!/usr/bin/env bash",
       'if [ "$1" = "doctor" ]; then',
@@ -48,7 +48,7 @@ function runWithHermesShim(command: string): Buffer {
       "",
     ].join("\n"),
   );
-  chmodSync(hermes, 0o755);
+  chmodSync(athena, 0o755);
   return execFileSync("bash", ["-lc", command], {
     env: {
       ...process.env,
@@ -80,9 +80,9 @@ describe("ssh remote config writes", () => {
   );
 });
 
-describe("ssh Hermes command quoting", () => {
+describe("ssh Athena command quoting", () => {
   it("shell-quotes the whole bash script without dropping per-argument quoting", () => {
-    const command = buildRemoteHermesCmd([
+    const command = buildRemoteAthenaCmd([
       "kanban",
       "create",
       "My task title",
@@ -91,10 +91,10 @@ describe("ssh Hermes command quoting", () => {
     ]);
 
     expect(command).not.toContain(
-      "bash -c '[ -x $HOME/hermes-agent/.venv/bin/hermes ] && exec $HOME/hermes-agent/.venv/bin/hermes 'kanban' 'create'",
+      "bash -c '[ -x $HOME/athena-agent/.venv/bin/athena ] && exec $HOME/athena-agent/.venv/bin/athena 'kanban' 'create'",
     );
     expect(command).toContain(
-      `bash -c '[ -x $HOME/hermes-agent/.venv/bin/hermes ] && exec $HOME/hermes-agent/.venv/bin/hermes '"'"'kanban'"'"'`,
+      `bash -c '[ -x $HOME/athena-agent/.venv/bin/athena ] && exec $HOME/athena-agent/.venv/bin/athena '"'"'kanban'"'"'`,
     );
   });
 
@@ -120,79 +120,79 @@ describe("ssh Hermes command quoting", () => {
       ["kanban", "create", "User's task", "--json"],
     ],
   ])("preserves %s", (_name, expectedArgs) => {
-    const command = buildRemoteHermesCmd(expectedArgs);
-    expect(parseNulArgs(runWithHermesShim(command))).toEqual(expectedArgs);
+    const command = buildRemoteAthenaCmd(expectedArgs);
+    expect(parseNulArgs(runWithAthenaShim(command))).toEqual(expectedArgs);
   });
 
   it("preserves existing extraShell redirects", () => {
-    const output = runWithHermesShim(
-      buildRemoteHermesCmd(["doctor"], " 2>&1"),
+    const output = runWithAthenaShim(
+      buildRemoteAthenaCmd(["doctor"], " 2>&1"),
     ).toString("utf8");
     expect(output).toBe("doctor stderr preserved\n");
   });
 });
 
 describe("ssh gateway commands (issue #285)", () => {
-  it("detects a systemd hermes.service unit before acting", () => {
+  it("detects a systemd athena.service unit before acting", () => {
     for (const cmd of [
       buildGatewayStartCommand(),
       buildGatewayStopCommand(),
       buildGatewayStatusCommand(),
     ]) {
-      expect(cmd).toContain("systemctl list-unit-files hermes.service");
+      expect(cmd).toContain("systemctl list-unit-files athena.service");
       expect(cmd.indexOf("if ")).toBeLessThan(cmd.indexOf("else"));
     }
   });
 
   it("start prefers systemd, falling back to nohup only without a unit", () => {
     const cmd = buildGatewayStartCommand();
-    expect(cmd).toContain("systemctl start hermes.service");
-    expect(cmd).toContain("sudo -n systemctl start hermes.service");
+    expect(cmd).toContain("systemctl start athena.service");
+    expect(cmd).toContain("sudo -n systemctl start athena.service");
     // The nohup fallback must live in the else branch — never alongside
     // systemd, where it would strand the unit in a restart crash-loop.
-    expect(cmd).toContain("nohup hermes gateway start");
+    expect(cmd).toContain("nohup athena gateway start");
     expect(systemdBranch(cmd)).not.toContain("nohup");
   });
 
-  it("stop routes through systemd, else hermes gateway stop", () => {
+  it("stop routes through systemd, else athena gateway stop", () => {
     const cmd = buildGatewayStopCommand();
-    expect(cmd).toContain("systemctl stop hermes.service");
-    expect(cmd).toContain("hermes gateway stop");
-    expect(systemdBranch(cmd)).not.toContain("hermes gateway stop");
+    expect(cmd).toContain("systemctl stop athena.service");
+    expect(cmd).toContain("athena gateway stop");
+    expect(systemdBranch(cmd)).not.toContain("athena gateway stop");
     expect(systemdBranch(cmd)).not.toContain("kill");
   });
 
   it("status reports the systemd unit state when managed", () => {
     const cmd = buildGatewayStatusCommand();
-    expect(cmd).toContain("systemctl is-active hermes.service");
+    expect(cmd).toContain("systemctl is-active athena.service");
     expect(cmd).toContain("gateway.pid");
     expect(systemdBranch(cmd)).not.toContain("gateway.pid");
   });
 });
 
-describe("buildRemoteHermesCmd venv probe (issue #284)", () => {
-  const cmd = buildRemoteHermesCmd(["--version"]);
+describe("buildRemoteAthenaCmd venv probe (issue #284)", () => {
+  const cmd = buildRemoteAthenaCmd(["--version"]);
 
   it("probes both .venv and venv for every install base", () => {
     for (const base of [
-      "$HOME/hermes-agent",
-      "$HOME/.hermes/hermes-agent",
-      "/opt/hermes/hermes-agent",
+      "$HOME/athena-agent",
+      "$HOME/.athena/athena-agent",
+      "/opt/athena/athena-agent",
     ]) {
-      expect(cmd).toContain(`${base}/.venv/bin/hermes`);
-      expect(cmd).toContain(`${base}/venv/bin/hermes`);
+      expect(cmd).toContain(`${base}/.venv/bin/athena`);
+      expect(cmd).toContain(`${base}/venv/bin/athena`);
     }
   });
 
   it("probes ~/.local/bin where pip --user installs a wrapper", () => {
-    expect(cmd).toContain("$HOME/.local/bin/hermes");
+    expect(cmd).toContain("$HOME/.local/bin/athena");
   });
 
   it("does not probe the /usr/local/bin sudo-wrapper it deliberately bypasses", () => {
-    expect(cmd).not.toContain("/usr/local/bin/hermes");
+    expect(cmd).not.toContain("/usr/local/bin/athena");
   });
 
-  it("still falls back to bare hermes on PATH", () => {
-    expect(cmd).toContain("command -v hermes");
+  it("still falls back to bare athena on PATH", () => {
+    expect(cmd).toContain("command -v athena");
   });
 });

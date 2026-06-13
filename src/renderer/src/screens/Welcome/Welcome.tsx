@@ -1,5 +1,5 @@
 import { useState } from "react";
-import HermesLogo from "../../components/common/HermesLogo";
+import AthenaLogo from "../../components/common/AthenaLogo";
 import {
   ArrowRight,
   Refresh,
@@ -56,9 +56,9 @@ function Welcome({
     setRemoteTesting(true);
     setRemoteError(null);
     try {
-      const ok = await window.hermesAPI.testRemoteConnection(url, key);
+      const ok = await window.athenaAPI.testRemoteConnection(url, key);
       if (ok) {
-        await window.hermesAPI.setConnectionConfig("remote", url, key);
+        await window.athenaAPI.setConnectionConfig("remote", url, key);
         onRecheck();
       } else {
         setRemoteError(t("settings.remoteErrorConnection"));
@@ -82,7 +82,7 @@ function Welcome({
     setSshTesting(true);
     setSshError(null);
     try {
-      const ok = await window.hermesAPI.testSshConnection(
+      const ok = await window.athenaAPI.testSshConnection(
         host,
         port,
         user,
@@ -90,7 +90,7 @@ function Welcome({
         remotePort,
       );
       if (ok) {
-        await window.hermesAPI.setSshConfig(
+        await window.athenaAPI.setSshConfig(
           host,
           port,
           user,
@@ -112,7 +112,7 @@ function Welcome({
   if (panel === "remote") {
     return (
       <div className="screen welcome-screen">
-        <HermesLogo size={36} />
+        <AthenaLogo size={36} />
         <h1 className="welcome-title" style={{ fontSize: 22 }}>
           {t("welcome.connectRemoteTitle")}
         </h1>
@@ -192,7 +192,7 @@ function Welcome({
   if (panel === "ssh") {
     return (
       <div className="screen welcome-screen">
-        <HermesLogo size={36} />
+        <AthenaLogo size={36} />
         <h1 className="welcome-title" style={{ fontSize: 22 }}>
           {t("settings.sshTitle")}
         </h1>
@@ -312,7 +312,7 @@ function Welcome({
 
   return (
     <div className="screen welcome-screen">
-      <HermesLogo size={40} />
+      <AthenaLogo size={40} />
 
       {error ? (
         <>

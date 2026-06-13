@@ -10,13 +10,13 @@ const { TEST_HOME } = vi.hoisted(() => {
   return {
     TEST_HOME: path.join(
       os.tmpdir(),
-      `hermes-profile-validation-${Date.now()}`,
+      `athena-profile-validation-${Date.now()}`,
     ),
   };
 });
 
 vi.mock("../src/main/installer", () => ({
-  HERMES_HOME: TEST_HOME,
+  CORTEX_HOME: TEST_HOME,
 }));
 
 import {
@@ -57,7 +57,7 @@ describe("profile name validation", () => {
     }
   });
 
-  it("keeps profile paths contained under the Hermes profiles directory", () => {
+  it("keeps profile paths contained under the Athena profiles directory", () => {
     expect(profileHome()).toBe(TEST_HOME);
     expect(profileHome("default")).toBe(TEST_HOME);
     expect(profileHome("work_1-prod")).toBe(

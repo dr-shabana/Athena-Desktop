@@ -46,7 +46,7 @@ const electronAPI = {
   },
 };
 
-const hermesAPI = {
+const athenaAPI = {
   // Installation
   checkInstall: (): Promise<{
     installed: boolean;
@@ -61,16 +61,16 @@ const hermesAPI = {
 
   // Pre-install inspection + "use an existing installation" (issue #272)
   inspectInstallTarget: (): Promise<{
-    hermesHome: string;
+    athenaHome: string;
     repoPath: string;
     state: "fresh" | "update" | "replace";
   }> => ipcRenderer.invoke("inspect-install-target"),
 
-  validateHermesHome: (dir: string): Promise<boolean> =>
-    ipcRenderer.invoke("validate-hermes-home", dir),
+  validateAthenaHome: (dir: string): Promise<boolean> =>
+    ipcRenderer.invoke("validate-athena-home", dir),
 
-  adoptHermesHome: (dir: string): Promise<boolean> =>
-    ipcRenderer.invoke("adopt-hermes-home", dir),
+  adoptAthenaHome: (dir: string): Promise<boolean> =>
+    ipcRenderer.invoke("adopt-athena-home", dir),
 
   quitApp: (): Promise<void> => ipcRenderer.invoke("quit-app"),
 
@@ -100,15 +100,15 @@ const hermesAPI = {
     return () => ipcRenderer.removeListener("install-progress", handler);
   },
 
-  // Hermes engine info
-  getHermesVersion: (): Promise<string | null> =>
-    ipcRenderer.invoke("get-hermes-version"),
-  refreshHermesVersion: (): Promise<string | null> =>
-    ipcRenderer.invoke("refresh-hermes-version"),
-  runHermesDoctor: (): Promise<string> =>
-    ipcRenderer.invoke("run-hermes-doctor"),
-  runHermesUpdate: (): Promise<{ success: boolean; error?: string }> =>
-    ipcRenderer.invoke("run-hermes-update"),
+  // Athena engine info
+  getAthenaVersion: (): Promise<string | null> =>
+    ipcRenderer.invoke("get-athena-version"),
+  refreshAthenaVersion: (): Promise<string | null> =>
+    ipcRenderer.invoke("refresh-athena-version"),
+  runAthenaDoctor: (): Promise<string> =>
+    ipcRenderer.invoke("run-athena-doctor"),
+  runAthenaUpdate: (): Promise<{ success: boolean; error?: string }> =>
+    ipcRenderer.invoke("run-athena-update"),
 
   // OpenClaw migration
   checkOpenClaw: (): Promise<{ found: boolean; path: string | null }> =>
@@ -176,8 +176,8 @@ const hermesAPI = {
   setConfig: (key: string, value: string, profile?: string): Promise<boolean> =>
     ipcRenderer.invoke("set-config", key, value, profile),
 
-  getHermesHome: (profile?: string): Promise<string> =>
-    ipcRenderer.invoke("get-hermes-home", profile),
+  getAthenaHome: (profile?: string): Promise<string> =>
+    ipcRenderer.invoke("get-athena-home", profile),
 
   getModelConfig: (
     profile?: string,
@@ -1064,19 +1064,19 @@ const hermesAPI = {
     ipcRenderer.invoke("open-external", url),
 
   // Backup / Import
-  runHermesBackup: (
+  runAthenaBackup: (
     profile?: string,
   ): Promise<{ success: boolean; path?: string; error?: string }> =>
-    ipcRenderer.invoke("run-hermes-backup", profile),
+    ipcRenderer.invoke("run-athena-backup", profile),
 
-  runHermesImport: (
+  runAthenaImport: (
     archivePath: string,
     profile?: string,
   ): Promise<{ success: boolean; error?: string }> =>
-    ipcRenderer.invoke("run-hermes-import", archivePath, profile),
+    ipcRenderer.invoke("run-athena-import", archivePath, profile),
 
   // Debug dump
-  runHermesDump: (): Promise<string> => ipcRenderer.invoke("run-hermes-dump"),
+  runAthenaDump: (): Promise<string> => ipcRenderer.invoke("run-athena-dump"),
 
   // Memory providers
   discoverMemoryProviders: (
@@ -1196,7 +1196,7 @@ const hermesAPI = {
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld("electron", electronAPI);
-    contextBridge.exposeInMainWorld("hermesAPI", hermesAPI);
+    contextBridge.exposeInMainWorld("athenaAPI", athenaAPI);
   } catch (error) {
     console.error(error);
   }
@@ -1204,5 +1204,5 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.electron = electronAPI;
   // @ts-ignore (define in dts)
-  window.hermesAPI = hermesAPI;
+  window.athenaAPI = athenaAPI;
 }

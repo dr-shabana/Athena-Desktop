@@ -86,7 +86,7 @@ describe("provider-registry", () => {
     });
 
     it("the registry covers every built-in remote OpenAI-compat provider", () => {
-      // These are the provider ids that hermes-desktop's renderer
+      // These are the provider ids that athena-desktop's renderer
       // exposes as built-in "remote" presets (constants.ts:LOCAL_PRESETS,
       // group: "remote"). They MUST have canonical URLs here — otherwise
       // setModelConfig would silently leave `base_url:` empty when the

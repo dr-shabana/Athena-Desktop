@@ -47,7 +47,7 @@ function makeApiKeyMask(length: number): string {
 // Read cached values from localStorage for instant display
 function getCachedVersion(): string | null {
   try {
-    return localStorage.getItem("hermes-version-cache");
+    return localStorage.getItem("athena-version-cache");
   } catch {
     return null;
   }
@@ -55,7 +55,7 @@ function getCachedVersion(): string | null {
 
 function getCachedOpenClaw(): { found: boolean; path: string | null } | null {
   try {
-    const raw = localStorage.getItem("hermes-openclaw-cache");
+    const raw = localStorage.getItem("athena-openclaw-cache");
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -64,12 +64,12 @@ function getCachedOpenClaw(): { found: boolean; path: string | null } | null {
 
 function Settings({ profile }: { profile?: string }): React.JSX.Element {
   const { t, locale, setLocale } = useI18n();
-  const [hermesHome, setHermesHome] = useState("");
+  const [athenaHome, setAthenaHome] = useState("");
   const { theme, setTheme, rounded, setRounded } = useTheme();
   const { font, setFont } = useFont();
 
-  // Hermes engine info — initialize from localStorage cache for instant display
-  const [hermesVersion, setHermesVersion] = useState<string | null>(
+  // Athena engine info — initialize from localStorage cache for instant display
+  const [athenaVersion, setAthenaVersion] = useState<string | null>(
     getCachedVersion,
   );
   const [appVersion, setAppVersion] = useState("");
@@ -90,7 +90,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
     cachedClaw?.path ?? null,
   );
   const [migrationDismissed, setMigrationDismissed] = useState(
-    () => localStorage.getItem("hermes-openclaw-dismissed") === "true",
+    () => localStorage.getItem("athena-openclaw-dismissed") === "true",
   );
   const [migrating, setMigrating] = useState(false);
   const [migrationLog, setMigrationLog] = useState("");
@@ -150,12 +150,12 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
   const loadConfig = useCallback(async (): Promise<void> => {
     // Load fast config first (cached in main process)
     const [home, aVersion, conn, keyStatus] = await Promise.all([
-      window.hermesAPI.getHermesHome(profile),
-      window.hermesAPI.getAppVersion(),
-      window.hermesAPI.getConnectionConfig(),
-      window.hermesAPI.getApiServerKeyStatus(profile),
+      window.athenaAPI.getAthenaHome(profile),
+      window.athenaAPI.getAppVersion(),
+      window.athenaAPI.getConnectionConfig(),
+      window.athenaAPI.getApiServerKeyStatus(profile),
     ]);
-    setHermesHome(home);
+    setAthenaHome(home);
     setAppVersion(aVersion);
     setConnMode(conn.mode);
     setConnRemoteUrl(conn.remoteUrl);
@@ -172,10 +172,10 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
     connLoaded.current = true;
 
     // Load network settings from config.yaml
-    window.hermesAPI.getConfig("network.force_ipv4", profile).then((v) => {
+    window.athenaAPI.getConfig("network.force_ipv4", profile).then((v) => {
       setForceIpv4(v === "true" || v === "True");
     });
-    window.hermesAPI.getConfig("network.proxy", profile).then((v) => {
+    window.athenaAPI.getConfig("network.proxy", profile).then((v) => {
       const loadedProxy = v || "";
       setHttpProxy(loadedProxy);
       httpProxyRef.current = loadedProxy;
@@ -183,23 +183,23 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
     });
 
     // Defer slow calls — background refresh, cached values show instantly
-    window.hermesAPI.getHermesVersion().then((v) => {
-      setHermesVersion(v);
+    window.athenaAPI.getAthenaVersion().then((v) => {
+      setAthenaVersion(v);
       if (v) {
         try {
-          localStorage.setItem("hermes-version-cache", v);
+          localStorage.setItem("athena-version-cache", v);
         } catch {
           /* ignore */
         }
       }
     });
 
-    if (localStorage.getItem("hermes-openclaw-dismissed") !== "true") {
-      window.hermesAPI.checkOpenClaw().then((claw) => {
+    if (localStorage.getItem("athena-openclaw-dismissed") !== "true") {
+      window.athenaAPI.checkOpenClaw().then((claw) => {
         setOpenclawFound(claw.found);
         setOpenclawPath(claw.path);
         try {
-          localStorage.setItem("hermes-openclaw-cache", JSON.stringify(claw));
+          localStorage.setItem("athena-openclaw-cache", JSON.stringify(claw));
         } catch {
           /* ignore */
         }
@@ -214,7 +214,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
   const saveHttpProxy = useCallback(async (): Promise<void> => {
     const trimmed = httpProxyRef.current.trim();
     if (trimmed === savedHttpProxyRef.current) return;
-    await window.hermesAPI.setConfig("network.proxy", trimmed, profile);
+    await window.athenaAPI.setConfig("network.proxy", trimmed, profile);
     savedHttpProxyRef.current = trimmed;
     setNetworkSaved(true);
     setTimeout(() => setNetworkSaved(false), 2000);
@@ -242,12 +242,12 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
     setMigrationLog("");
     setMigrationResult(null);
 
-    const cleanup = window.hermesAPI.onInstallProgress((p) => {
+    const cleanup = window.athenaAPI.onInstallProgress((p) => {
       setMigrationLog(p.log);
     });
 
     try {
-      const result = await window.hermesAPI.runClawMigrate();
+      const result = await window.athenaAPI.runClawMigrate();
       cleanup();
       if (result.success) {
         setMigrationResult(t("settings.migrationComplete"));
@@ -268,7 +268,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
   }
 
   function handleDismissMigration(): void {
-    localStorage.setItem("hermes-openclaw-dismissed", "true");
+    localStorage.setItem("athena-openclaw-dismissed", "true");
     setMigrationDismissed(true);
   }
 
@@ -287,7 +287,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
 
   async function handleSaveConnection(): Promise<void> {
     if (connMode === "ssh") {
-      await window.hermesAPI.setSshConfig(
+      await window.athenaAPI.setSshConfig(
         sshHost.trim(),
         parseInt(sshPort, 10) || 22,
         sshUser.trim(),
@@ -297,7 +297,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
       );
     } else {
       const apiKey = getConnectionApiKeyForSave();
-      await window.hermesAPI.setConnectionConfig(
+      await window.athenaAPI.setConnectionConfig(
         connMode,
         connRemoteUrl,
         apiKey,
@@ -326,7 +326,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
       }
       setConnTesting(true);
       setConnStatus(null);
-      const ok = await window.hermesAPI.testSshConnection(
+      const ok = await window.athenaAPI.testSshConnection(
         sshHost.trim(),
         parseInt(sshPort, 10) || 22,
         sshUser.trim(),
@@ -343,7 +343,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
       }
       setConnTesting(true);
       setConnStatus(null);
-      const ok = await window.hermesAPI.testRemoteConnection(
+      const ok = await window.athenaAPI.testRemoteConnection(
         url,
         getConnectionApiKeyForSave(),
       );
@@ -358,7 +358,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
     setConnApiKey("");
     setConnApiKeyMask("");
     setConnHasApiKey(false);
-    await window.hermesAPI.setConnectionConfig("local", "", "");
+    await window.athenaAPI.setConnectionConfig("local", "", "");
     setConnStatus(t("settings.switchedToLocal"));
     setTimeout(() => setConnStatus(null), 2000);
   }
@@ -366,7 +366,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
   async function handleBackup(): Promise<void> {
     setBackingUp(true);
     setBackupResult(null);
-    const result = await window.hermesAPI.runHermesBackup(profile);
+    const result = await window.athenaAPI.runAthenaBackup(profile);
     setBackingUp(false);
     if (result.success) {
       setBackupResult(`Backup created: ${result.path || "success"}`);
@@ -384,8 +384,8 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
       if (!file) return;
       setImporting(true);
       setImportResult(null);
-      const filePath = window.hermesAPI.getPathForFile(file);
-      const result = await window.hermesAPI.runHermesImport(filePath, profile);
+      const filePath = window.athenaAPI.getPathForFile(file);
+      const result = await window.athenaAPI.runAthenaImport(filePath, profile);
       setImporting(false);
       if (result.success) {
         setImportResult(t("settings.migrationComplete"));
@@ -397,7 +397,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
   }
 
   async function loadLogs(): Promise<void> {
-    const result = await window.hermesAPI.readLogs(logFile, 300);
+    const result = await window.athenaAPI.readLogs(logFile, 300);
     setLogContent(result.content);
     setLogPath(result.path);
   }
@@ -405,18 +405,18 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
   async function handleDoctor(): Promise<void> {
     setDoctorRunning(true);
     setDoctorOutput(null);
-    const output = await window.hermesAPI.runHermesDoctor();
+    const output = await window.athenaAPI.runAthenaDoctor();
     setDoctorOutput(output);
     setDoctorRunning(false);
   }
 
   // Helper to fetch fresh version, clear backend cache, and update localStorage
   function refreshVersion(): void {
-    window.hermesAPI.refreshHermesVersion().then((v) => {
-      setHermesVersion(v);
+    window.athenaAPI.refreshAthenaVersion().then((v) => {
+      setAthenaVersion(v);
       if (v) {
         try {
-          localStorage.setItem("hermes-version-cache", v);
+          localStorage.setItem("athena-version-cache", v);
         } catch {
           /* ignore */
         }
@@ -424,10 +424,10 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
     });
   }
 
-  async function handleUpdateHermes(): Promise<void> {
+  async function handleUpdateAthena(): Promise<void> {
     setUpdating(true);
     setUpdateResult(null);
-    const result = await window.hermesAPI.runHermesUpdate();
+    const result = await window.athenaAPI.runAthenaUpdate();
     setUpdating(false);
     if (result.success) {
       setUpdateResult(t("settings.updateSuccess"));
@@ -439,10 +439,10 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
     }
   }
 
-  // Parse "Hermes Agent v0.7.0 (2026.4.3) Project: ... Python: 3.11.15 OpenAI SDK: 2.30.0 Update available: ..."
+  // Parse "Athena Agent v0.7.0 (2026.4.3) Project: ... Python: 3.11.15 OpenAI SDK: 2.30.0 Update available: ..."
   const parsedVersion = (() => {
-    if (!hermesVersion) return null;
-    const v = hermesVersion;
+    if (!athenaVersion) return null;
+    const v = athenaVersion;
     const version = v.match(/v([\d.]+)/)?.[1] || "";
     const date = v.match(/\(([\d.]+)\)/)?.[1] || "";
     const python = v.match(/Python:\s*([\d.]+)/)?.[1] || "";
@@ -460,89 +460,89 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
 
       <div className="settings-section">
         <div className="settings-section-title">
-          {t("settings.sections.hermesAgent")}
+          {t("settings.sections.athenaAgent")}
         </div>
-        <div className="settings-hermes-info">
-          <div className="settings-hermes-row">
-            <div className="settings-hermes-detail">
-              <span className="settings-hermes-label">
+        <div className="settings-athena-info">
+          <div className="settings-athena-row">
+            <div className="settings-athena-detail">
+              <span className="settings-athena-label">
                 {t("common.engine")}
               </span>
-              {hermesVersion === null ? (
+              {athenaVersion === null ? (
                 <span className="skeleton skeleton-sm" />
               ) : (
-                <span className="settings-hermes-value">
+                <span className="settings-athena-value">
                   {parsedVersion
                     ? `v${parsedVersion.version}`
                     : t("settings.notDetected")}
                 </span>
               )}
             </div>
-            <div className="settings-hermes-detail">
-              <span className="settings-hermes-label">
+            <div className="settings-athena-detail">
+              <span className="settings-athena-label">
                 {t("common.released")}
               </span>
-              {hermesVersion === null ? (
+              {athenaVersion === null ? (
                 <span className="skeleton skeleton-sm" />
               ) : (
-                <span className="settings-hermes-value">
+                <span className="settings-athena-value">
                   {parsedVersion?.date || "—"}
                 </span>
               )}
             </div>
-            <div className="settings-hermes-detail">
-              <span className="settings-hermes-label">
+            <div className="settings-athena-detail">
+              <span className="settings-athena-label">
                 {t("common.desktop")}
               </span>
               {!appVersion ? (
                 <span className="skeleton skeleton-sm" />
               ) : (
-                <span className="settings-hermes-value">
+                <span className="settings-athena-value">
                   {t("settings.version", { version: appVersion })}
                 </span>
               )}
             </div>
-            <div className="settings-hermes-detail">
-              <span className="settings-hermes-label">Python</span>
-              {hermesVersion === null ? (
+            <div className="settings-athena-detail">
+              <span className="settings-athena-label">Python</span>
+              {athenaVersion === null ? (
                 <span className="skeleton skeleton-sm" />
               ) : (
-                <span className="settings-hermes-value">
+                <span className="settings-athena-value">
                   {parsedVersion?.python || "—"}
                 </span>
               )}
             </div>
-            <div className="settings-hermes-detail">
-              <span className="settings-hermes-label">OpenAI SDK</span>
-              {hermesVersion === null ? (
+            <div className="settings-athena-detail">
+              <span className="settings-athena-label">OpenAI SDK</span>
+              {athenaVersion === null ? (
                 <span className="skeleton skeleton-sm" />
               ) : (
-                <span className="settings-hermes-value">
+                <span className="settings-athena-value">
                   {parsedVersion?.sdk || "—"}
                 </span>
               )}
             </div>
-            <div className="settings-hermes-detail">
-              <span className="settings-hermes-label">{t("common.home")}</span>
-              {!hermesHome ? (
+            <div className="settings-athena-detail">
+              <span className="settings-athena-label">{t("common.home")}</span>
+              {!athenaHome ? (
                 <span className="skeleton skeleton-md" />
               ) : (
-                <span className="settings-hermes-value settings-hermes-path">
-                  {hermesHome}
+                <span className="settings-athena-value settings-athena-path">
+                  {athenaHome}
                 </span>
               )}
             </div>
           </div>
           {parsedVersion?.updateInfo && (
-            <div className="settings-hermes-update-badge">
+            <div className="settings-athena-update-badge">
               {parsedVersion.updateInfo}
             </div>
           )}
-          <div className="settings-hermes-actions">
+          <div className="settings-athena-actions">
             {parsedVersion?.updateInfo ? (
               <button
                 className="btn btn-primary "
-                onClick={handleUpdateHermes}
+                onClick={handleUpdateAthena}
                 disabled={updating}
               >
                 {updating ? t("settings.updating") : t("settings.updateEngine")}
@@ -566,7 +566,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
               onClick={async () => {
                 setDumpRunning(true);
                 setDumpOutput(null);
-                const output = await window.hermesAPI.runHermesDump();
+                const output = await window.athenaAPI.runAthenaDump();
                 setDumpOutput(output);
                 setDumpRunning(false);
               }}
@@ -577,16 +577,16 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
           </div>
           {updateResult && (
             <div
-              className={`settings-hermes-result ${updateResultType || "error"}`}
+              className={`settings-athena-result ${updateResultType || "error"}`}
             >
               {updateResult}
             </div>
           )}
           {doctorOutput && (
-            <pre className="settings-hermes-doctor">{doctorOutput}</pre>
+            <pre className="settings-athena-doctor">{doctorOutput}</pre>
           )}
           {dumpOutput && (
-            <pre className="settings-hermes-doctor">{dumpOutput}</pre>
+            <pre className="settings-athena-doctor">{dumpOutput}</pre>
           )}
         </div>
       </div>
@@ -597,11 +597,11 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
           <div className="settings-field-hint" style={{ marginBottom: 10 }}>
             {t("settings.communityHint")}
           </div>
-          <div className="settings-hermes-actions">
+          <div className="settings-athena-actions">
             <button
               className="btn btn-secondary"
               onClick={() =>
-                window.hermesAPI.openExternal(DISCORD_COMMUNITY_URL)
+                window.athenaAPI.openExternal(DISCORD_COMMUNITY_URL)
               }
               title={DISCORD_COMMUNITY_URL}
             >
@@ -671,7 +671,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
               disabled={generatingKey}
               onClick={async () => {
                 setGeneratingKey(true);
-                await window.hermesAPI.generateApiServerKey(profile);
+                await window.athenaAPI.generateApiServerKey(profile);
                 setApiServerKeyMissing(false);
                 setGeneratingKey(false);
                 setConnStatus(t("settings.apiGenerated"));
@@ -733,7 +733,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
                 {t("settings.remoteApiKeyHint")}
               </div>
             </div>
-            <div className="settings-hermes-actions">
+            <div className="settings-athena-actions">
               <button
                 className="btn btn-secondary"
                 onClick={handleTestConnection}
@@ -818,7 +818,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
                 {t("settings.sshHint", { cmd: `${sshUser || "user"}@${sshHost || "host"}` })}
               </div>
             </div>
-            <div className="settings-hermes-actions">
+            <div className="settings-athena-actions">
               <button
                 className="btn btn-secondary"
                 onClick={handleTestConnection}
@@ -862,13 +862,13 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
             </button>
           </div>
           {migrationLog && (
-            <pre className="settings-hermes-doctor" ref={migrationLogRef}>
+            <pre className="settings-athena-doctor" ref={migrationLogRef}>
               {migrationLog}
             </pre>
           )}
           {migrationResult && (
             <div
-              className={`settings-hermes-result ${migrationResultType || "error"}`}
+              className={`settings-athena-result ${migrationResultType || "error"}`}
             >
               {migrationResult}
             </div>
@@ -881,7 +881,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
             >
               {migrating
                 ? t("settings.migrating")
-                : t("settings.migrateToHermes")}
+                : t("settings.migrateToAthena")}
             </button>
             <button
               className="btn btn-secondary "
@@ -1048,7 +1048,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
                 onChange={async (e) => {
                   const val = e.target.checked;
                   setForceIpv4(val);
-                  await window.hermesAPI.setConfig(
+                  await window.athenaAPI.setConfig(
                     "network.force_ipv4",
                     val ? "true" : "false",
                     profile,
@@ -1114,7 +1114,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
           <div className="settings-field-hint" style={{ marginBottom: 10 }}>
             {t("settings.dataHint")}
           </div>
-          <div className="settings-hermes-actions">
+          <div className="settings-athena-actions">
             <button
               className="btn btn-secondary"
               onClick={handleBackup}
@@ -1134,7 +1134,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
           </div>
           {backupResult && (
             <div
-              className={`settings-hermes-result ${backupResult.includes("created") || backupResult.includes("success") ? "success" : "error"}`}
+              className={`settings-athena-result ${backupResult.includes("created") || backupResult.includes("success") ? "success" : "error"}`}
               style={{ marginTop: 8 }}
             >
               {backupResult}
@@ -1142,7 +1142,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
           )}
           {importResult && (
             <div
-              className={`settings-hermes-result ${importResult.includes("complete") ? "success" : "error"}`}
+              className={`settings-athena-result ${importResult.includes("complete") ? "success" : "error"}`}
               style={{ marginTop: 8 }}
             >
               {importResult}
@@ -1177,7 +1177,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
                   className={`btn btn-sm ${logFile === f ? "btn-primary" : "btn-secondary"}`}
                   onClick={() => {
                     setLogFile(f);
-                    window.hermesAPI.readLogs(f, 300).then((r) => {
+                    window.athenaAPI.readLogs(f, 300).then((r) => {
                       setLogContent(r.content);
                       setLogPath(r.path);
                     });
@@ -1196,7 +1196,7 @@ function Settings({ profile }: { profile?: string }): React.JSX.Element {
               </div>
             )}
             <pre
-              className="settings-hermes-doctor"
+              className="settings-athena-doctor"
               style={{
                 maxHeight: 300,
                 overflow: "auto",

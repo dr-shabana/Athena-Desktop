@@ -2,7 +2,7 @@
 
 **Status:** Approved (brainstorming) — pending implementation plan
 **Date:** 2026-04-30
-**Branch target:** `Aiacos/hermes-desktop:feat/winget-rpm-release` → PR upstream `fathah/hermes-desktop:main`
+**Branch target:** `Aiacos/athena-desktop:feat/winget-rpm-release` → PR upstream `dr-shabana/Athena-Desktop:main`
 
 ## Goal
 
@@ -46,11 +46,11 @@ The default-true on dispatch is a safety net: a stray click in the Actions UI ca
 
 ### Identifiers and naming
 
-- **Winget `PackageIdentifier`:** `NousResearch.HermesDesktop` (stable, never renamed)
-- **Winget `Publisher`:** `Nous Research` (free-text; binaries hosted under `fathah/hermes-desktop`, which the moderation review will verify against the `InstallerUrl`)
-- **Winget `PackageName`:** `Hermes Agent` (matches `productName` in `electron-builder.yml`)
-- **NSIS scope:** `oneClick: true`, `perMachine: false` — installs into `%LOCALAPPDATA%`, no UAC prompt, aligns with `winget install` default user scope and with the app's existing `~/.hermes` user-state model.
-- **RPM artifact name:** `hermes-desktop-<version>.rpm` (no spaces, no arch suffix — consistent with the existing `.deb` and `.AppImage` naming. The default `${productName}` would produce `Hermes Agent-...rpm` which breaks `dnf install ./file.rpm`. We explicitly only build `x86_64`, so the missing arch suffix is unambiguous in practice.).
+- **Winget `PackageIdentifier`:** `dr-shabana.AthenaDesktop` (stable, never renamed)
+- **Winget `Publisher`:** `Dr. Shabana` (free-text; binaries hosted under `dr-shabana/Athena-Desktop`, which the moderation review will verify against the `InstallerUrl`)
+- **Winget `PackageName`:** `Athena Agent` (matches `productName` in `electron-builder.yml`)
+- **NSIS scope:** `oneClick: true`, `perMachine: false` — installs into `%LOCALAPPDATA%`, no UAC prompt, aligns with `winget install` default user scope and with the app's existing `~/.athena` user-state model.
+- **RPM artifact name:** `athena-desktop-<version>.rpm` (no spaces, no arch suffix — consistent with the existing `.deb` and `.AppImage` naming. The default `${productName}` would produce `Athena Agent-...rpm` which breaks `dnf install ./file.rpm`. We explicitly only build `x86_64`, so the missing arch suffix is unambiguous in practice.).
 
 ## File changes
 
@@ -73,7 +73,7 @@ The default-true on dispatch is a safety net: a stray click in the Actions UI ca
   - `runs-on: ubuntu-latest`
   - `needs: [prepare, release_windows]`
   - `if: needs.prepare.outputs.tag_exists == 'false'`
-  - Steps: checkout, download `windows-artifacts` to `dist/`, run `node scripts/generate-winget-manifests.mjs` with env `VERSION` and `PUBLISH_OWNER=fathah`, upload `dist/winget/` as artifact `winget-manifests-${{ needs.prepare.outputs.version }}`.
+  - Steps: checkout, download `windows-artifacts` to `dist/`, run `node scripts/generate-winget-manifests.mjs` with env `VERSION` and `PUBLISH_OWNER=dr-shabana`, upload `dist/winget/` as artifact `winget-manifests-${{ needs.prepare.outputs.version }}`.
 - Modify `publish`:
   - `needs: [prepare, release_mac, release_linux, release_windows, generate_winget]`
   - `if: needs.prepare.outputs.is_dry_run == 'false' && needs.prepare.outputs.tag_exists == 'false'`
@@ -87,7 +87,7 @@ Concurrency block (`group: release`, `cancel-in-progress: true`) remains unchang
 - `linux.target`: add `rpm` (existing `AppImage`, `snap`, `deb` retained).
 - `linux.synopsis`: short one-line description (required by fpm/rpmbuild for valid RPM metadata).
 - `linux.description`: longer description.
-- `linux.vendor`: `Nous Research` (or repo owner of upstream; finalized during implementation).
+- `linux.vendor`: `Dr. Shabana` (or repo owner of upstream; finalized during implementation).
 - New `rpm:` block with `artifactName: ${name}-${version}.${ext}`.
 - `nsis:` block extended with explicit `oneClick: true` and `perMachine: false` (currently relies on electron-builder defaults; making them explicit prevents silent behavior change across electron-builder versions).
 
@@ -99,7 +99,7 @@ YAML manifest with placeholders: `{{VERSION}}`, `{{INSTALLER_URL}}`, `{{INSTALLE
 
 #### `build/winget/Locale.en-US.template.yaml`
 
-Locale manifest with placeholders: `{{VERSION}}`, `{{RELEASE_NOTES_URL}}`. Includes `Publisher: Nous Research`, `PublisherUrl: https://github.com/fathah/hermes-desktop`, `PackageName: Hermes Agent`, `License: MIT`, `LicenseUrl: https://github.com/fathah/hermes-desktop/blob/main/LICENSE`, `ShortDescription`, `Tags: [ai, agent, desktop, electron, llm]`.
+Locale manifest with placeholders: `{{VERSION}}`, `{{RELEASE_NOTES_URL}}`. Includes `Publisher: Dr. Shabana`, `PublisherUrl: https://github.com/dr-shabana/Athena-Desktop`, `PackageName: Athena Agent`, `License: MIT`, `LicenseUrl: https://github.com/dr-shabana/Athena-Desktop/blob/main/LICENSE`, `ShortDescription`, `Tags: [ai, agent, desktop, electron, llm]`.
 
 #### `build/winget/Version.template.yaml`
 
@@ -107,11 +107,11 @@ Root version manifest with placeholders: `{{VERSION}}`. Trivial: `PackageIdentif
 
 #### `scripts/generate-winget-manifests.mjs`
 
-Node ESM script (~50 lines, zero external deps). Reads `package.json` to get `version` and `name`. Locates `dist/<name>-<version>-setup.exe`. Computes SHA256 with `node:crypto` `createHash('sha256')` over the file. Reads each `*.template.yaml` from `build/winget/`. Replaces all `{{KEY}}` placeholders by string `replaceAll`. Writes output to `dist/winget/manifests/n/NousResearch/HermesDesktop/<version>/`:
+Node ESM script (~50 lines, zero external deps). Reads `package.json` to get `version` and `name`. Locates `dist/<name>-<version>-setup.exe`. Computes SHA256 with `node:crypto` `createHash('sha256')` over the file. Reads each `*.template.yaml` from `build/winget/`. Replaces all `{{KEY}}` placeholders by string `replaceAll`. Writes output to `dist/winget/manifests/n/dr-shabana/AthenaDesktop/<version>/`:
 
-- `NousResearch.HermesDesktop.installer.yaml`
-- `NousResearch.HermesDesktop.locale.en-US.yaml`
-- `NousResearch.HermesDesktop.yaml`
+- `dr-shabana.AthenaDesktop.installer.yaml`
+- `dr-shabana.AthenaDesktop.locale.en-US.yaml`
+- `dr-shabana.AthenaDesktop.yaml`
 
 The path mirrors the directory layout in `microsoft/winget-pkgs`, so the operator submitting the PR can `cp -r` directly.
 
@@ -123,10 +123,10 @@ Add script `"build:rpm": "npm run build && electron-builder --linux rpm"` for lo
 
 #### `README.md`
 
-Update the Install section's platform table to add Windows (`.exe` and, once accepted into winget-pkgs, `winget install NousResearch.HermesDesktop`) and Fedora (`.rpm`). Add a note that:
+Update the Install section's platform table to add Windows (`.exe` and, once accepted into winget-pkgs, `winget install dr-shabana.AthenaDesktop`) and Fedora (`.rpm`). Add a note that:
 
 - The Windows build is unsigned; Windows SmartScreen will warn on first launch.
-- The `.rpm` is unsigned; install with `sudo dnf install ./hermes-desktop-<version>.x86_64.rpm` (or use `--nogpgcheck` if a system policy enforces signature checking).
+- The `.rpm` is unsigned; install with `sudo dnf install ./athena-desktop-<version>.x86_64.rpm` (or use `--nogpgcheck` if a system policy enforces signature checking).
 - Auto-update on Linux is supported only for `.AppImage` builds; `.rpm` and `.deb` users must download new releases manually.
 
 ## Data flow
@@ -138,8 +138,8 @@ checkout
   → npm ci                  → node_modules + electron-builder install-app-deps
   → npm run build           → out/main + out/preload + out/renderer
   → electron-builder --win nsis --x64
-                            → dist/hermes-desktop-<version>-setup.exe
-                            → dist/hermes-desktop-<version>-setup.exe.blockmap
+                            → dist/athena-desktop-<version>-setup.exe
+                            → dist/athena-desktop-<version>-setup.exe.blockmap
                             → dist/latest.yml
   → upload-artifact "windows-artifacts"
 ```
@@ -149,9 +149,9 @@ checkout
 ```
 download-artifact "windows-artifacts" → dist/
 node scripts/generate-winget-manifests.mjs
-  → SHA256(dist/hermes-desktop-<version>-setup.exe)
+  → SHA256(dist/athena-desktop-<version>-setup.exe)
   → fill 3 templates with VERSION, INSTALLER_URL, INSTALLER_SHA256, RELEASE_DATE
-  → write dist/winget/manifests/n/NousResearch/HermesDesktop/<version>/*.yaml
+  → write dist/winget/manifests/n/dr-shabana/AthenaDesktop/<version>/*.yaml
 upload-artifact "winget-manifests-<version>"
 ```
 
@@ -163,9 +163,9 @@ checkout
   → npm run build
   → apt install rpm
   → electron-builder --linux AppImage deb rpm
-                            → dist/hermes-desktop-<version>.AppImage
-                            → dist/hermes-desktop-<version>.deb
-                            → dist/hermes-desktop-<version>.x86_64.rpm
+                            → dist/athena-desktop-<version>.AppImage
+                            → dist/athena-desktop-<version>.deb
+                            → dist/athena-desktop-<version>.x86_64.rpm
                             → dist/latest-linux.yml
   → upload-artifact "linux-artifacts"
 ```
@@ -205,7 +205,7 @@ softprops/action-gh-release files=artifacts/* (excludes winget/ subdir)
 
 ### CI on fork
 
-9. Push `feat/winget-rpm-release` to `Aiacos/hermes-desktop`.
+9. Push `feat/winget-rpm-release` to `Aiacos/athena-desktop`.
 10. Trigger `workflow_dispatch` from the Actions UI on `feat/winget-rpm-release` with `dry_run=true`.
 11. Verify all build jobs succeed:
     - `prepare` ✓
@@ -218,12 +218,12 @@ softprops/action-gh-release files=artifacts/* (excludes winget/ subdir)
 
 ### PR
 
-13. Open PR `Aiacos:feat/winget-rpm-release` → `fathah:main`. PR description summarizes what was added, the verification done, and the manual steps the maintainer has to take post-merge to actually publish to winget (download manifest artifact from the first real release run, submit to `microsoft/winget-pkgs`).
+13. Open PR `Aiacos:feat/winget-rpm-release` → `dr-shabana:main`. PR description summarizes what was added, the verification done, and the manual steps the maintainer has to take post-merge to actually publish to winget (download manifest artifact from the first real release run, submit to `microsoft/winget-pkgs`).
 
 ## Open questions deferred to implementation
 
 - Exact wording of `linux.synopsis` and `linux.description` (will follow `package.json.description` style).
-- Final value of `linux.vendor` (`Nous Research` vs `fathah`).
+- Final value of `linux.vendor` (`Dr. Shabana` vs `dr-shabana`).
 - Whether to include `manifestVersion: 1.10.0` (current latest) or stick with `1.6.0` (more compatible with older `winget` clients). Default to `1.6.0` unless implementation reveals required fields.
 
 ## Out-of-scope follow-ups (future PRs, if desired)

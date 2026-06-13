@@ -28,7 +28,7 @@ interface FurnitureDef {
   placementAnchor?: [number, number];
 }
 
-// Per-type GLB + transform metadata, mirroring hermes-office's furniture maps.
+// Per-type GLB + transform metadata, mirroring athena-office's furniture maps.
 const FURNITURE_DEFS: Record<FurnitureType, FurnitureDef> = {
   desk: {
     url: deskUrl,
@@ -99,7 +99,7 @@ const FURNITURE_DEFS: Record<FurnitureType, FurnitureDef> = {
     castShadow: true,
   },
   // Desk monitor (computerScreen.glb), tinted dark and lifted onto the desk
-  // surface — values mirror hermes-office's `computer` furniture.
+  // surface — values mirror athena-office's `computer` furniture.
   computer: {
     url: computerUrl,
     scale: [1.1, 1.1, 1.1],
@@ -169,7 +169,7 @@ function tintedClone(
 
 /**
  * Render one GLB furniture item placed by canvas (x, y) top-left and rotated
- * around its footprint centre — same placement maths as hermes-office.
+ * around its footprint centre — same placement maths as athena-office.
  */
 function GlbItem({
   type,

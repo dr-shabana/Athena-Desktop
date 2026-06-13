@@ -1,11 +1,11 @@
 ---
-name: hermes-agent
+name: athena-agent
 description: Expert in building self-improving AI agents with tool use, multi-platform messaging, and a closed learning loop. Proficient in LLM orchestration, tool integration, session management, and agent autonomy.
 ---
 
-# Hermes Agent - Complete Project Guide (A-Z)
+# Athena Agent - Complete Project Guide (A-Z)
 
-> **Purpose of this document:** A single, comprehensive reference that explains everything about the Hermes Agent project — its architecture, source code, features, release history, and design patterns — so that any AI or developer can fully understand the system.
+> **Purpose of this document:** A single, comprehensive reference that explains everything about the Athena Agent project — its architecture, source code, features, release history, and design patterns — so that any AI or developer can fully understand the system.
 
 ---
 
@@ -20,16 +20,16 @@ description: Expert in building self-improving AI agents with tool use, multi-pl
    - 5.2 [Tool Orchestration (model_tools.py)](#52-tool-orchestration-model_toolspy)
    - 5.3 [Toolset System (toolsets.py)](#53-toolset-system-toolsetspy)
    - 5.4 [Tool Registry (tools/registry.py)](#54-tool-registry-toolsregistrypy)
-   - 5.5 [Session Database (hermes_state.py)](#55-session-database-hermes_statepy)
-   - 5.6 [Constants & Home Directory (hermes_constants.py)](#56-constants--home-directory-hermes_constantspy)
+   - 5.5 [Session Database (cortex_state.py)](#55-session-database-cortex_statepy)
+   - 5.6 [Constants & Home Directory (cortex_constants.py)](#56-constants--home-directory-cortex_constantspy)
 6. [CLI System](#6-cli-system)
    - 6.1 [Interactive CLI (cli.py)](#61-interactive-cli-clipy)
-   - 6.2 [CLI Entry Point (hermes_cli/main.py)](#62-cli-entry-point-hermes_climainpy)
-   - 6.3 [Configuration System (hermes_cli/config.py)](#63-configuration-system-hermes_cliconfigpy)
-   - 6.4 [Slash Command Registry (hermes_cli/commands.py)](#64-slash-command-registry-hermes_clicommandspy)
-   - 6.5 [Setup Wizard (hermes_cli/setup.py)](#65-setup-wizard-hermes_clisetupy)
-   - 6.6 [Model Catalog (hermes_cli/models.py)](#66-model-catalog-hermes_climodelspy)
-   - 6.7 [Skin/Theme Engine (hermes_cli/skin_engine.py)](#67-skintheme-engine-hermes_cliskin_enginepy)
+   - 6.2 [CLI Entry Point (cortex_cli/main.py)](#62-cli-entry-point-cortex_climainpy)
+   - 6.3 [Configuration System (cortex_cli/config.py)](#63-configuration-system-cortex_cliconfigpy)
+   - 6.4 [Slash Command Registry (cortex_cli/commands.py)](#64-slash-command-registry-cortex_clicommandspy)
+   - 6.5 [Setup Wizard (cortex_cli/setup.py)](#65-setup-wizard-cortex_clisetupy)
+   - 6.6 [Model Catalog (cortex_cli/models.py)](#66-model-catalog-cortex_climodelspy)
+   - 6.7 [Skin/Theme Engine (cortex_cli/skin_engine.py)](#67-skintheme-engine-cortex_cliskin_enginepy)
 7. [Tool System](#7-tool-system)
    - 7.1 [Terminal Tool (tools/terminal_tool.py)](#71-terminal-tool-toolsterminal_toolpy)
    - 7.2 [File Tools (tools/file_tools.py)](#72-file-tools-toolsfile_toolspy)
@@ -72,7 +72,7 @@ description: Expert in building self-improving AI agents with tool use, multi-pl
 
 ## 1. Project Overview
 
-**Hermes Agent** is a self-improving AI agent built by [Nous Research](https://nousresearch.com). It is an open-source (MIT licensed), Python-based project that provides:
+**Athena Agent** is a self-improving AI agent built by [Dr. Shabana](https://dr-shabana.com). It is an open-source (MIT licensed), Python-based project that provides:
 
 - A **full interactive terminal UI** (CLI) for conversing with LLMs
 - A **messaging gateway** supporting 16+ platforms (Telegram, Discord, Slack, WhatsApp, Signal, Matrix, Email, etc.)
@@ -82,7 +82,7 @@ description: Expert in building self-improving AI agents with tool use, multi-pl
 - **Six terminal backends** — local, Docker, SSH, Modal (serverless), Daytona (serverless), Singularity (HPC)
 - **Scheduled automations** via built-in cron scheduler
 - **IDE integration** via ACP (Agent Communication Protocol) for VS Code, Zed, JetBrains
-- **MCP integration** — both client (connect to any MCP server) and server (expose Hermes to MCP clients)
+- **MCP integration** — both client (connect to any MCP server) and server (expose Athena to MCP clients)
 - **RL training** via Atropos environments for training the next generation of tool-calling models
 
 **Tech Stack:**
@@ -94,7 +94,7 @@ description: Expert in building self-improving AI agents with tool use, multi-pl
 - Anthropic SDK (native Anthropic support)
 - Rich + prompt_toolkit (CLI rendering)
 
-**Repository:** `github.com/NousResearch/hermes-agent`
+**Repository:** `github.com/dr-shabana/athena-agent`
 **Version:** 0.7.0 (as of April 2026)
 **License:** MIT
 
@@ -126,27 +126,27 @@ description: Expert in building self-improving AI agents with tool use, multi-pl
 
 ```bash
 # One-line install (Linux, macOS, WSL2)
-curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dr-shabana/athena-agent/main/scripts/install.sh | bash
 
 # After install
 source ~/.bashrc    # or: source ~/.zshrc
-hermes              # start chatting
+athena              # start chatting
 
 # Key commands
-hermes model        # Choose LLM provider and model
-hermes tools        # Configure which tools are enabled
-hermes config set   # Set individual config values
-hermes gateway      # Start the messaging gateway
-hermes setup        # Run the full setup wizard
-hermes update       # Update to latest version
-hermes doctor       # Diagnose any issues
+athena model        # Choose LLM provider and model
+athena tools        # Configure which tools are enabled
+athena config set   # Set individual config values
+athena gateway      # Start the messaging gateway
+athena setup        # Run the full setup wizard
+athena update       # Update to latest version
+athena doctor       # Diagnose any issues
 ```
 
 **For development:**
 
 ```bash
-git clone https://github.com/NousResearch/hermes-agent.git
-cd hermes-agent
+git clone https://github.com/dr-shabana/athena-agent.git
+cd athena-agent
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv venv --python 3.11
 source venv/bin/activate
@@ -159,15 +159,15 @@ python -m pytest tests/ -q    # ~3000 tests
 ## 4. Project Structure
 
 ```
-hermes-agent/
+athena-agent/
 ├── run_agent.py              # AIAgent class — core conversation loop
 ├── model_tools.py            # Tool orchestration, _discover_tools(), handle_function_call()
-├── toolsets.py               # Toolset definitions, _HERMES_CORE_TOOLS list
+├── toolsets.py               # Toolset definitions, _CORTEX_CORE_TOOLS list
 ├── toolset_distributions.py  # Toolset sampling distributions for RL
-├── cli.py                    # HermesCLI class — interactive CLI orchestrator
-├── hermes_state.py           # SessionDB — SQLite session store (FTS5 search)
-├── hermes_constants.py       # Shared constants, get_hermes_home()
-├── hermes_time.py            # Timezone handling
+├── cli.py                    # AthenaCLI class — interactive CLI orchestrator
+├── cortex_state.py           # SessionDB — SQLite session store (FTS5 search)
+├── cortex_constants.py       # Shared constants, get_athena_home()
+├── cortex_time.py            # Timezone handling
 ├── utils.py                  # Shared utility functions
 ├── batch_runner.py           # Parallel batch processing
 ├── trajectory_compressor.py  # Trajectory compression for RL training
@@ -186,15 +186,15 @@ hermes-agent/
 │   ├── skill_commands.py         # Skill slash commands (shared CLI/gateway)
 │   └── trajectory.py             # Trajectory saving helpers
 │
-├── hermes_cli/               # CLI subcommands and setup
-│   ├── main.py               # Entry point — all `hermes` subcommands
+├── cortex_cli/               # CLI subcommands and setup
+│   ├── main.py               # Entry point — all `athena` subcommands
 │   ├── config.py             # DEFAULT_CONFIG, OPTIONAL_ENV_VARS, migration
 │   ├── commands.py           # Slash command definitions + SlashCommandCompleter
 │   ├── callbacks.py          # Terminal callbacks (clarify, sudo, approval)
 │   ├── setup.py              # Interactive setup wizard
 │   ├── skin_engine.py        # Skin/theme engine
-│   ├── skills_config.py      # `hermes skills` — skill management
-│   ├── tools_config.py       # `hermes tools` — tool management
+│   ├── skills_config.py      # `athena skills` — skill management
+│   ├── tools_config.py       # `athena tools` — tool management
 │   ├── skills_hub.py         # Skills Hub integration
 │   ├── models.py             # Model catalog, provider model lists
 │   ├── model_switch.py       # Shared /model switch pipeline
@@ -251,7 +251,7 @@ hermes-agent/
 │       └── api_server.py         # OpenAI-compatible API server
 │
 ├── acp_adapter/              # ACP server (IDE integration)
-│   ├── server.py             # HermesACPAgent class
+│   ├── server.py             # AthenaACPAgent class
 │   ├── session.py            # SessionManager
 │   ├── events.py             # Streaming callbacks
 │   ├── permissions.py        # Approval callbacks
@@ -272,8 +272,8 @@ hermes-agent/
 │       └── byterover/
 │
 ├── environments/             # RL training environments (Atropos)
-│   ├── hermes_base_env.py    # Abstract base RL environment
-│   ├── agent_loop.py         # HermesAgentLoop — rollout execution
+│   ├── athena_base_env.py    # Abstract base RL environment
+│   ├── agent_loop.py         # AthenaAgentLoop — rollout execution
 │   ├── tool_context.py       # ToolContext — sandbox for RL
 │   ├── web_research_env.py   # Web research tasks
 │   └── agentic_opd_env.py    # Observation-Prediction-Demo env
@@ -294,10 +294,10 @@ hermes-agent/
 └── cli-config.yaml.example   # Example config
 ```
 
-**User config directory:** `~/.hermes/`
+**User config directory:** `~/.cortex/`
 
 ```
-~/.hermes/
+~/.cortex/
 ├── config.yaml           # User settings
 ├── .env                  # API keys and secrets
 ├── MEMORY.md             # Persistent agent memory
@@ -461,9 +461,9 @@ Provides flexible tool grouping and composition.
 
 **Composite Toolsets:**
 
-- `hermes-cli` — All core tools for CLI platform
-- `hermes-telegram`, `hermes-discord`, etc. — Platform-specific tool sets
-- `hermes-gateway` — Union of all platform tools
+- `athena-cli` — All core tools for CLI platform
+- `athena-telegram`, `athena-discord`, etc. — Platform-specific tool sets
+- `athena-gateway` — Union of all platform tools
 - `debugging` — terminal + file + web
 - `safe` — Everything except terminal
 
@@ -510,7 +510,7 @@ registry.check_tool_availability()           # Returns (available, unavailable)
 
 ---
 
-### 5.5 Session Database (hermes_state.py)
+### 5.5 Session Database (cortex_state.py)
 
 SQLite-based persistent session storage with FTS5 full-text search.
 
@@ -560,19 +560,19 @@ messages_fts (content)
 
 ---
 
-### 5.6 Constants & Home Directory (hermes_constants.py)
+### 5.6 Constants & Home Directory (cortex_constants.py)
 
 Import-safe constants module with no circular dependencies.
 
 ```python
-get_hermes_home() → Path          # HERMES_HOME env var or ~/.hermes
-display_hermes_home() → str       # User-friendly display: "~/.hermes"
-get_optional_skills_dir() → Path  # HERMES_OPTIONAL_SKILLS env var
+get_athena_home() → Path          # CORTEX_HOME env var or ~/.athena
+display_athena_home() → str       # User-friendly display: "~/.athena"
+get_optional_skills_dir() → Path  # CORTEX_OPTIONAL_SKILLS env var
 parse_reasoning_effort(str) → Dict  # "high" → {"enabled": True, "effort": "high"}
 
 # Key constants
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-NOUS_API_BASE_URL = "https://inference-api.nousresearch.com/v1"
+NOUS_API_BASE_URL = "https://inference-api.dr-shabana.com/v1"
 AI_GATEWAY_BASE_URL = "https://ai-gateway.vercel.sh/v1"
 VALID_REASONING_EFFORTS = ("xhigh", "high", "medium", "low", "minimal")
 ```
@@ -583,7 +583,7 @@ VALID_REASONING_EFFORTS = ("xhigh", "high", "medium", "low", "minimal")
 
 ### 6.1 Interactive CLI (cli.py)
 
-The `HermesCLI` class provides the interactive terminal interface.
+The `AthenaCLI` class provides the interactive terminal interface.
 
 **Features:**
 
@@ -600,7 +600,7 @@ The `HermesCLI` class provides the interactive terminal interface.
 
 ```python
 load_cli_config() → dict
-# Loads from ~/.hermes/config.yaml (or ./cli-config.yaml fallback)
+# Loads from ~/.cortex/config.yaml (or ./cli-config.yaml fallback)
 # Merges with hardcoded defaults
 # Expands ${ENV_VAR} references
 # Maps terminal config → env vars
@@ -608,37 +608,37 @@ load_cli_config() → dict
 
 ---
 
-### 6.2 CLI Entry Point (hermes_cli/main.py)
+### 6.2 CLI Entry Point (cortex_cli/main.py)
 
-All `hermes` subcommands are dispatched from here:
+All `athena` subcommands are dispatched from here:
 
 ```
-hermes                    # Default: interactive chat
-hermes chat               # Explicit interactive mode
-hermes gateway start|stop|status|install|uninstall
-hermes setup              # Setup wizard
-hermes model              # Select model/provider
-hermes tools              # Configure tools
-hermes skills             # Manage skills
-hermes config set|get     # Direct config manipulation
-hermes cron list|delete   # Cron job management
-hermes doctor             # Diagnose issues
-hermes sessions browse    # Session picker
-hermes profile create|list|switch|delete|export|import
-hermes mcp serve|add|remove  # MCP management
-hermes acp                # Start ACP server
-hermes update|uninstall|version
+athena                    # Default: interactive chat
+athena chat               # Explicit interactive mode
+athena gateway start|stop|status|install|uninstall
+athena setup              # Setup wizard
+athena model              # Select model/provider
+athena tools              # Configure tools
+athena skills             # Manage skills
+athena config set|get     # Direct config manipulation
+athena cron list|delete   # Cron job management
+athena doctor             # Diagnose issues
+athena sessions browse    # Session picker
+athena profile create|list|switch|delete|export|import
+athena mcp serve|add|remove  # MCP management
+athena acp                # Start ACP server
+athena update|uninstall|version
 ```
 
 **Profile System:**
 
-- `_apply_profile_override()` runs BEFORE any imports to set `HERMES_HOME`
+- `_apply_profile_override()` runs BEFORE any imports to set `CORTEX_HOME`
 - Pre-parses `--profile/-p` from argv
 - Allows fully isolated agent instances with separate config, memory, sessions, skills
 
 ---
 
-### 6.3 Configuration System (hermes_cli/config.py)
+### 6.3 Configuration System (cortex_cli/config.py)
 
 **Key Configuration Sections:**
 
@@ -703,13 +703,13 @@ approvals:
 
 **Config Files:**
 
-- `~/.hermes/config.yaml` — User settings (authoritative)
-- `~/.hermes/.env` — API keys and secrets
+- `~/.cortex/config.yaml` — User settings (authoritative)
+- `~/.cortex/.env` — API keys and secrets
 - Config version migration system (currently v5)
 
 ---
 
-### 6.4 Slash Command Registry (hermes_cli/commands.py)
+### 6.4 Slash Command Registry (cortex_cli/commands.py)
 
 All slash commands defined centrally in `COMMAND_REGISTRY`:
 
@@ -722,7 +722,7 @@ CommandDef(name, description, category, aliases, args_hint, cli_only, gateway_on
 - CLI `process_command()` — dispatch on canonical name
 - Gateway dispatch + help
 - Telegram BotCommand menu
-- Slack `/hermes` subcommands
+- Slack `/athena` subcommands
 - Autocomplete + help text
 
 **Key Commands:**
@@ -753,7 +753,7 @@ CommandDef(name, description, category, aliases, args_hint, cli_only, gateway_on
 
 ---
 
-### 6.5 Setup Wizard (hermes_cli/setup.py)
+### 6.5 Setup Wizard (cortex_cli/setup.py)
 
 Modular interactive wizard with independent sections:
 
@@ -772,7 +772,7 @@ Features:
 
 ---
 
-### 6.6 Model Catalog (hermes_cli/models.py)
+### 6.6 Model Catalog (cortex_cli/models.py)
 
 Provider-specific model lists:
 
@@ -801,7 +801,7 @@ Features:
 
 ---
 
-### 6.7 Skin/Theme Engine (hermes_cli/skin_engine.py)
+### 6.7 Skin/Theme Engine (cortex_cli/skin_engine.py)
 
 Data-driven CLI visual customization — no code changes needed.
 
@@ -819,7 +819,7 @@ Data-driven CLI visual customization — no code changes needed.
 
 **Built-in Skins:** default, ares, mono, slate, poseidon, sisyphus, charizard
 
-**User Skins:** Drop `~/.hermes/skins/<name>.yaml` and activate with `/skin <name>`
+**User Skins:** Drop `~/.cortex/skins/<name>.yaml` and activate with `/skin <name>`
 
 ---
 
@@ -1040,14 +1040,14 @@ Assembles the system prompt from multiple sources:
 | Session Search Guidance | How to recall past conversations                     |
 | Skills Guidance         | When to create/patch skills                          |
 | Tool Use Enforcement    | Must execute tools, not describe actions             |
-| Skills Index            | `~/.hermes/skills/.hermes-skills.json`               |
+| Skills Index            | `~/.cortex/skills/.athena-skills.json`               |
 | Platform Hints          | OS, Python version, shell, available tools           |
-| Context Files           | `.hermes.md`, `AGENTS.md`, `.cursorrules`, `SOUL.md` |
+| Context Files           | `.athena.md`, `AGENTS.md`, `.cursorrules`, `SOUL.md` |
 | Model/Provider Info     | Current model and provider identity                  |
 
 **Context File Discovery:**
 
-1. Check `cwd/.hermes.md` or `HERMES.md`
+1. Check `cwd/.athena.md` or `CORTEX.md`
 2. Walk parent directories up to git root
 3. Validate against injection patterns before inclusion
 
@@ -1121,9 +1121,9 @@ Configured per-task via `auxiliary` section in config.yaml.
 
 Shared skill invocation for CLI and gateway:
 
-- Skills loaded from `~/.hermes/skills/` and external directories
+- Skills loaded from `~/.cortex/skills/` and external directories
 - Injected as **user message** (not system prompt) to preserve prompt caching
-- `/plan` command generates implementation plans stored in `.hermes/plans/`
+- `/plan` command generates implementation plans stored in `.athena/plans/`
 - Skill content includes setup instructions, tool options, usage examples
 
 ---
@@ -1168,7 +1168,7 @@ Main controller managing all platform adapters and routing messages.
 **SessionStore** — Loads/saves conversation transcripts as JSON files
 
 ```
-~/.hermes/sessions/{session_key}.json
+~/.cortex/sessions/{session_key}.json
 Format: [{role, content, timestamp}, ...]
 ```
 
@@ -1189,7 +1189,7 @@ Format: [{role, content, timestamp}, ...]
 | ------------------ | -------------------------------------------------------------------------------------------------------- |
 | **Telegram**       | Polling + webhook mode, media handling, inline keyboards, forum topic isolation, group mention gating    |
 | **Discord**        | Server channels, threads, reactions (processing/done/error), button-based approval, @mention requirement |
-| **Slack**          | Multi-workspace OAuth, thread handling, app_mention, `/hermes` subcommands                               |
+| **Slack**          | Multi-workspace OAuth, thread handling, app_mention, `/athena` subcommands                               |
 | **WhatsApp**       | Group & DM support, media captions, LID↔phone alias resolution                                           |
 | **Matrix**         | E2EE room encryption, threaded messages, trusted device flow, native voice messages                      |
 | **Signal**         | Encrypted DMs, group membership, SSE keepalive, phone URL encoding                                       |
@@ -1223,14 +1223,14 @@ Built-in job scheduler running in the gateway background thread.
 - `"0 9 * * *"` — Standard cron expression
 - `"2026-04-06T14:00"` — Absolute datetime
 
-**Job Storage:** `~/.hermes/cron/jobs.json`
+**Job Storage:** `~/.cortex/cron/jobs.json`
 
 **Execution Flow:**
 
 1. `tick()` called every 60s from gateway background thread
 2. Fetch due jobs past `next_run_at`
-3. Spawn `hermes` CLI subprocess with job prompt + skills
-4. Capture output → save to `~/.hermes/cron/output/{job_id}/{timestamp}.md`
+3. Spawn `athena` CLI subprocess with job prompt + skills
+4. Capture output → save to `~/.cortex/cron/output/{job_id}/{timestamp}.md`
 5. Deliver to target platform (or stay local)
 
 **Delivery Targets:**
@@ -1280,7 +1280,7 @@ description: Generate ASCII art using multiple tools
 version: 4.0.0
 dependencies: []
 metadata:
-  hermes:
+  athena:
     tags: [ASCII, Art, Banners, Creative]
     related_skills: [excalidraw]
 ---
@@ -1289,24 +1289,24 @@ metadata:
 
 **Discovery:**
 
-- Auto-discovered from `~/.hermes/skills/` + external dirs
-- Skills index built at startup (`.hermes-skills.json`)
+- Auto-discovered from `~/.cortex/skills/` + external dirs
+- Skills index built at startup (`.athena-skills.json`)
 - Loaded as user messages to preserve prompt caching
-- Per-platform enable/disable via `hermes skills`
+- Per-platform enable/disable via `athena skills`
 - Skills Hub (`agentskills.io`) for community sharing
 
 ---
 
 ## 12. Plugin System
 
-Drop Python files into `~/.hermes/plugins/` to extend Hermes.
+Drop Python files into `~/.cortex/plugins/` to extend Athena.
 
 **Plugin Capabilities:**
 
 - Register custom tools and toolsets
 - Inject messages into conversation
 - Lifecycle hooks: `pre_llm_call`, `post_llm_call`, `on_session_start`, `on_session_end`
-- Enable/disable via `hermes plugins enable/disable <name>`
+- Enable/disable via `athena plugins enable/disable <name>`
 
 **Memory Provider Plugins (plugins/memory/):**
 8 implementations: openviking, mem0, hindsight, holographic, honcho, retaindb, byterover
@@ -1325,7 +1325,7 @@ class MemoryProvider:
 
 ## 13. Memory System
 
-Hermes has a pluggable memory provider interface:
+Athena has a pluggable memory provider interface:
 
 **Built-in Memory:**
 
@@ -1357,9 +1357,9 @@ memory:
 
 Agent Communication Protocol server for VS Code, Zed, JetBrains.
 
-**Entry:** `hermes acp` → `acp_adapter/server.py`
+**Entry:** `athena acp` → `acp_adapter/server.py`
 
-**HermesACPAgent Class:**
+**AthenaACPAgent Class:**
 
 ```python
 initialize()                    # Handshake with IDE client
@@ -1388,7 +1388,7 @@ OpenAI-compatible API endpoint for headless integrations (e.g., Open WebUI).
 
 **Features:**
 
-- `X-Hermes-Session-Id` header for persistent sessions
+- `X-Athena-Session-Id` header for persistent sessions
 - Tool progress streaming via SSE events
 - `/api/jobs` REST API for cron management
 - Input limits, field whitelists, SQLite-backed response persistence
@@ -1398,9 +1398,9 @@ OpenAI-compatible API endpoint for headless integrations (e.g., Open WebUI).
 
 ## 16. MCP Server Mode
 
-Expose Hermes conversations to MCP-compatible clients.
+Expose Athena conversations to MCP-compatible clients.
 
-**Entry:** `hermes mcp serve`
+**Entry:** `athena mcp serve`
 
 **Features:**
 
@@ -1416,12 +1416,12 @@ Expose Hermes conversations to MCP-compatible clients.
 
 Atropos-based RL training framework for agent policy optimization.
 
-**Base Class:** `HermesAgentBaseEnv` (extends `atroposlib.BaseEnv`)
+**Base Class:** `AthenaAgentBaseEnv` (extends `atroposlib.BaseEnv`)
 
 **Configuration:**
 
 ```python
-HermesAgentEnvConfig:
+AthenaAgentEnvConfig:
     enabled_toolsets: ["terminal", "file", "web"]
     max_agent_turns: 30
     agent_temperature: 1.0
@@ -1441,11 +1441,11 @@ HermesAgentEnvConfig:
 
 - `web_research_env.py` — Web research tasks
 - `agentic_opd_env.py` — Observation-Prediction-Demonstration
-- `hermes_swe_env.py` — Software engineering tasks
+- `athena_swe_env.py` — Software engineering tasks
 
 **Supporting:**
 
-- `HermesAgentLoop` — Orchestrates step-by-step rollouts
+- `AthenaAgentLoop` — Orchestrates step-by-step rollouts
 - `ToolContext` — Sandbox for tool execution, records side effects
 - `trajectory_compressor.py` — Compresses trajectories for training data
 
@@ -1453,31 +1453,31 @@ HermesAgentEnvConfig:
 
 ## 18. Profiles (Multi-Instance)
 
-Run multiple fully isolated Hermes instances from the same installation.
+Run multiple fully isolated Athena instances from the same installation.
 
 **Commands:**
 
 ```bash
-hermes profile create <name>
-hermes profile list
-hermes profile switch <name>
-hermes profile delete <name>
-hermes profile export <name>
-hermes profile import <file>
-hermes -p <name>             # Launch with specific profile
+athena profile create <name>
+athena profile list
+athena profile switch <name>
+athena profile delete <name>
+athena profile export <name>
+athena profile import <file>
+athena -p <name>             # Launch with specific profile
 ```
 
 **Each profile gets:**
 
-- Own `HERMES_HOME` directory (`~/.hermes/profiles/<name>/`)
+- Own `CORTEX_HOME` directory (`~/.cortex/profiles/<name>/`)
 - Own config.yaml, .env, memory, sessions, skills, gateway service
 - Token-lock isolation (prevents two profiles sharing bot credentials)
 
 **Implementation:**
 
-- `_apply_profile_override()` sets `HERMES_HOME` env var before any imports
-- All 119+ references to `get_hermes_home()` automatically scope to active profile
-- Profile operations are HOME-anchored (`~/.hermes/profiles/`) for cross-profile visibility
+- `_apply_profile_override()` sets `CORTEX_HOME` env var before any imports
+- All 119+ references to `get_athena_home()` automatically scope to active profile
+- Profile operations are HOME-anchored (`~/.cortex/profiles/`) for cross-profile visibility
 
 ---
 
@@ -1588,14 +1588,14 @@ hermes -p <name>             # Launch with specific profile
 - Centralized provider router (`call_llm()` API)
 - ACP server for IDE integration
 - CLI skin/theme engine
-- Git worktree isolation (`hermes -w`)
+- Git worktree isolation (`athena -w`)
 - Filesystem checkpoints and `/rollback`
 - 3,289 tests
 
 ### v0.3.0 (March 17, 2026) — Streaming, Plugins, Providers
 
 - Unified streaming infrastructure (token-by-token delivery)
-- First-class plugin architecture (`~/.hermes/plugins/`)
+- First-class plugin architecture (`~/.cortex/plugins/`)
 - Native Anthropic provider with prompt caching
 - Smart approvals + `/stop` command
 - Honcho memory integration
@@ -1636,7 +1636,7 @@ hermes -p <name>             # Launch with specific profile
 > 95 PRs and 16 resolved issues in 2 days
 
 - Profiles for multiple isolated agent instances
-- MCP Server Mode (`hermes mcp serve`)
+- MCP Server Mode (`athena mcp serve`)
 - Official Docker container
 - Ordered fallback provider chain
 - Feishu/Lark platform adapter
@@ -1664,7 +1664,7 @@ hermes -p <name>             # Launch with specific profile
 ## 23. File Dependency Chain
 
 ```
-hermes_constants.py  (no deps — imported by everything)
+cortex_constants.py  (no deps — imported by everything)
        ↑
 tools/registry.py  (no tool deps — imported by all tool files)
        ↑
@@ -1672,9 +1672,9 @@ tools/*.py  (each calls registry.register() at import time)
        ↑
 model_tools.py  (imports tools/registry + triggers tool discovery)
        ↑
-run_agent.py (AIAgent), cli.py (HermesCLI), gateway/run.py (GatewayRunner)
+run_agent.py (AIAgent), cli.py (AthenaCLI), gateway/run.py (GatewayRunner)
        ↑
-hermes_cli/main.py  (entry point — dispatches to all subsystems)
+cortex_cli/main.py  (entry point — dispatches to all subsystems)
 ```
 
 **Key Principle:** `tools/registry.py` is circular-import safe. It has no tool dependencies. Tool files import the registry; `model_tools.py` imports both.
@@ -1692,7 +1692,7 @@ hermes_cli/main.py  (entry point — dispatches to all subsystems)
 | **Prefix Caching**             | System prompt cached across turns (Anthropic optimization); context never altered mid-conversation |
 | **Proactive Compression**      | Triggered at 50% context usage; structured summaries with iterative updates                        |
 | **Async Bridging**             | Persistent event loops prevent "Event loop is closed"; per-thread loops for workers                |
-| **Profile Isolation**          | HERMES_HOME env var set before imports; all state functions route through `get_hermes_home()`      |
+| **Profile Isolation**          | CORTEX_HOME env var set before imports; all state functions route through `get_athena_home()`      |
 | **Agent Caching**              | Gateway caches AIAgent per session to preserve prompt cache across turns                           |
 | **WAL Concurrency**            | SQLite WAL mode + jitter retry for concurrent readers + single writer                              |
 | **Plugin Architecture**        | Tools, toolsets, hooks, memory providers extensible via plugins                                    |
@@ -1707,7 +1707,7 @@ hermes_cli/main.py  (entry point — dispatches to all subsystems)
 
 | Variable              | Purpose                                                   |
 | --------------------- | --------------------------------------------------------- |
-| `HERMES_HOME`         | Override home directory (profiles set this automatically) |
+| `CORTEX_HOME`         | Override home directory (profiles set this automatically) |
 | `OPENROUTER_API_KEY`  | OpenRouter provider key                                   |
 | `ANTHROPIC_API_KEY`   | Anthropic provider key                                    |
 | `OPENAI_API_KEY`      | OpenAI provider key                                       |
@@ -1726,21 +1726,21 @@ hermes_cli/main.py  (entry point — dispatches to all subsystems)
 
 | File                          | Purpose                          |
 | ----------------------------- | -------------------------------- |
-| `~/.hermes/config.yaml`       | Main configuration (YAML)        |
-| `~/.hermes/.env`              | API keys and secrets             |
-| `~/.hermes/MEMORY.md`         | Persistent agent memory          |
-| `~/.hermes/USER.md`           | User profile                     |
-| `~/.hermes/SOUL.md`           | Agent persona/identity           |
-| `~/.hermes/sessions.db`       | SQLite session database          |
-| `~/.hermes/cron/jobs.json`    | Cron job definitions             |
-| `.hermes.md` (in project dir) | Per-project context file         |
+| `~/.cortex/config.yaml`       | Main configuration (YAML)        |
+| `~/.cortex/.env`              | API keys and secrets             |
+| `~/.cortex/MEMORY.md`         | Persistent agent memory          |
+| `~/.cortex/USER.md`           | User profile                     |
+| `~/.cortex/SOUL.md`           | Agent persona/identity           |
+| `~/.cortex/sessions.db`       | SQLite session database          |
+| `~/.cortex/cron/jobs.json`    | Cron job definitions             |
+| `.athena.md` (in project dir) | Per-project context file         |
 | `AGENTS.md` (in project dir)  | Developer instructions for agent |
 
 ---
 
 ## 26. Known Pitfalls
 
-1. **DO NOT hardcode `~/.hermes` paths** — Use `get_hermes_home()` from `hermes_constants`. Hardcoding breaks profiles.
+1. **DO NOT hardcode `~/.athena` paths** — Use `get_athena_home()` from `cortex_constants`. Hardcoding breaks profiles.
 
 2. **DO NOT use `simple_term_menu`** — Rendering bugs in tmux/iTerm2 (ghosting). Use `curses` instead.
 
@@ -1750,16 +1750,16 @@ hermes_cli/main.py  (entry point — dispatches to all subsystems)
 
 5. **DO NOT hardcode cross-tool references in schemas** — Tool may be unavailable. Add dynamic references in `get_tool_definitions()`.
 
-6. **Tests must not write to `~/.hermes/`** — `_isolate_hermes_home` autouse fixture redirects to temp dir.
+6. **Tests must not write to `~/.cortex/`** — `_isolate_athena_home` autouse fixture redirects to temp dir.
 
 7. **Prompt caching must not break** — Do NOT alter past context, change toolsets, reload memories, or rebuild system prompts mid-conversation.
 
 8. **Working directory behavior differs:** CLI uses `os.getcwd()`, gateway uses `MESSAGING_CWD` env var.
 
-9. **Config has three loaders:** `load_cli_config()` (CLI), `load_config()` (hermes tools/setup), direct YAML (gateway). They have different merge behaviors.
+9. **Config has three loaders:** `load_cli_config()` (CLI), `load_config()` (athena tools/setup), direct YAML (gateway). They have different merge behaviors.
 
-10. **Profile operations are HOME-anchored** — `_get_profiles_root()` returns `Path.home() / ".hermes" / "profiles"`, NOT `get_hermes_home() / "profiles"`. This is intentional for cross-profile visibility.
+10. **Profile operations are HOME-anchored** — `_get_profiles_root()` returns `Path.home() / ".athena" / "profiles"`, NOT `get_athena_home() / "profiles"`. This is intentional for cross-profile visibility.
 
 ---
 
-_This document covers Hermes Agent v0.7.0 as of April 2026. For the latest information, refer to the [official documentation](https://hermes-agent.nousresearch.com/docs/) and the [GitHub repository](https://github.com/NousResearch/hermes-agent)._
+_This document covers Athena Agent v0.7.0 as of April 2026. For the latest information, refer to the [official documentation](https://athena-agent.dr-shabana.com/docs/) and the [GitHub repository](https://github.com/dr-shabana/athena-agent)._

@@ -7,7 +7,7 @@ import {
 /**
  * Dual-engine compat: the desktop writes a host-derived `<VENDOR>_API_KEY`
  * env-var to the child process so the upstream engine's host-derive
- * resolver (`hermes_cli/runtime_provider.py::_host_derived_api_key`) finds
+ * resolver (`cortex_cli/runtime_provider.py::_host_derived_api_key`) finds
  * a key. Without it, custom-provider chat against `api.deepseek.com` etc.
  * on a post-2026 engine falls through to "no-key-required" and 401s.
  *

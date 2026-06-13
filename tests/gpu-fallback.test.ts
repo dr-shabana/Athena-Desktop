@@ -8,7 +8,7 @@ import { join } from "path";
  * the `electron` module's `app` so the pure decision logic (which env/flag/arg
  * disables the GPU) and the crash-guard relaunch behaviour can be exercised in
  * a plain Node test. Covers the two PR #605 review fixes:
- *   1. HERMES_DISABLE_GPU=0 must override a persisted flag file.
+ *   1. CORTEX_DISABLE_GPU=0 must override a persisted flag file.
  *   2. A failed flag write must not cause an infinite crash/relaunch loop.
  */
 
@@ -49,7 +49,7 @@ vi.mock("electron", () => ({
   },
 }));
 
-const SENTINEL = "--hermes-gpu-disabled";
+const SENTINEL = "--athena-gpu-disabled";
 let testHome: string;
 let originalArgv: string[];
 
@@ -71,7 +71,7 @@ function fireGpuCrash(reason = "crashed", exitCode = 9): void {
 
 describe("gpu-fallback", () => {
   beforeEach(() => {
-    testHome = mkdtempSync(join(tmpdir(), "hermes-gpu-"));
+    testHome = mkdtempSync(join(tmpdir(), "athena-gpu-"));
     originalArgv = process.argv;
     process.argv = ["/path/to/app"];
     h.state.userData = testHome;
@@ -95,15 +95,15 @@ describe("gpu-fallback", () => {
     expect(isGpuDisabled()).toBe(true);
   });
 
-  it("HERMES_DISABLE_GPU=0 force-enables even when the flag file exists", async () => {
+  it("CORTEX_DISABLE_GPU=0 force-enables even when the flag file exists", async () => {
     writeFileSync(flagFile(), new Date().toISOString());
-    vi.stubEnv("HERMES_DISABLE_GPU", "0");
+    vi.stubEnv("CORTEX_DISABLE_GPU", "0");
     const { isGpuDisabled } = await load();
     expect(isGpuDisabled()).toBe(false);
   });
 
-  it("HERMES_DISABLE_GPU=1 force-disables with no flag file", async () => {
-    vi.stubEnv("HERMES_DISABLE_GPU", "1");
+  it("CORTEX_DISABLE_GPU=1 force-disables with no flag file", async () => {
+    vi.stubEnv("CORTEX_DISABLE_GPU", "1");
     const { isGpuDisabled } = await load();
     expect(isGpuDisabled()).toBe(true);
   });
@@ -116,7 +116,7 @@ describe("gpu-fallback", () => {
 
   it("applyGpuPreferences clears the flag file on an explicit force-enable", async () => {
     writeFileSync(flagFile(), new Date().toISOString());
-    vi.stubEnv("HERMES_DISABLE_GPU", "0");
+    vi.stubEnv("CORTEX_DISABLE_GPU", "0");
     const { applyGpuPreferences } = await load();
     applyGpuPreferences();
     expect(existsSync(flagFile())).toBe(false);

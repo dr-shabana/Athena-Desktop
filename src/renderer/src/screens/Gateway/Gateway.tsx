@@ -54,8 +54,8 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
     setLoadError(null);
     try {
       const [gwStatus, platforms] = await Promise.all([
-        window.hermesAPI.gatewayStatus(),
-        window.hermesAPI.getMessagingPlatforms(profile),
+        window.athenaAPI.gatewayStatus(),
+        window.athenaAPI.getMessagingPlatforms(profile),
       ]);
       setGatewayRunning(gwStatus);
       // Clear stale start-failure banners once the gateway is confirmed up,
@@ -85,7 +85,7 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
 
   useEffect(() => {
     let cancelled = false;
-    window.hermesAPI
+    window.athenaAPI
       .getApiServerKeyStatus(profile)
       .then((status) => {
         if (!cancelled) setApiKeyStatus(status);
@@ -128,7 +128,7 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
     setGatewayError(null);
     if (gatewayRunning) {
       try {
-        await window.hermesAPI.stopGateway();
+        await window.athenaAPI.stopGateway();
         setGatewayRunning(false);
       } catch (err) {
         setGatewayError(
@@ -139,7 +139,7 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
       }
     } else {
       try {
-        const result = await window.hermesAPI.startGateway();
+        const result = await window.athenaAPI.startGateway();
         setGatewayRunning(result.running);
         if (!result.success) {
           setGatewayError(
@@ -152,7 +152,7 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
         gatewayStatusTimeoutRef.current = setTimeout(() => {
           // Refresh status + platform catalog once the adapters have had a
           // moment to come up; surface an error if it exited immediately.
-          void window.hermesAPI.gatewayStatus().then((status) => {
+          void window.athenaAPI.gatewayStatus().then((status) => {
             setGatewayRunning(status);
             if (status) {
               void loadConfig();
@@ -185,14 +185,14 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
     setGatewayBusy(true);
     setGatewayError(null);
     try {
-      const restarted = await window.hermesAPI.restartGateway(profile);
+      const restarted = await window.athenaAPI.restartGateway(profile);
       setGatewayRunning(restarted);
       if (!restarted) {
         await loadConfig();
         setGatewayError(t("gateway.restartFailed"));
       } else {
         gatewayStatusTimeoutRef.current = setTimeout(async () => {
-          const status = await window.hermesAPI.gatewayStatus();
+          const status = await window.athenaAPI.gatewayStatus();
           setGatewayRunning(status);
           if (status) {
             void loadConfig();
@@ -215,7 +215,7 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
     setBusyPlatform(platform.id);
     setMessages((prev) => ({ ...prev, [platform.id]: null }));
     try {
-      await window.hermesAPI.updateMessagingPlatform(
+      await window.athenaAPI.updateMessagingPlatform(
         platform.id,
         { enabled: nextEnabled },
         profile,
@@ -234,7 +234,7 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
     setBusyPlatform(platform.id);
     setMessages((prev) => ({ ...prev, [platform.id]: null }));
     try {
-      await window.hermesAPI.updateMessagingPlatform(
+      await window.athenaAPI.updateMessagingPlatform(
         platform.id,
         { toolsets: { [toolset.key]: nextEnabled } },
         profile,
@@ -308,7 +308,7 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
     setBusyPlatform(platform.id);
     setMessages((prev) => ({ ...prev, [platform.id]: null }));
     try {
-      await window.hermesAPI.updateMessagingPlatform(
+      await window.athenaAPI.updateMessagingPlatform(
         platform.id,
         { env, clear_env },
         profile,
@@ -332,7 +332,7 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
   async function testPlatform(platform: MessagingPlatformInfo): Promise<void> {
     setBusyPlatform(platform.id);
     try {
-      const result = await window.hermesAPI.testMessagingPlatform(
+      const result = await window.athenaAPI.testMessagingPlatform(
         platform.id,
         profile,
       );
@@ -439,9 +439,9 @@ function Gateway({ profile }: { profile?: string }): React.JSX.Element {
                 onClick={async () => {
                   setGeneratingKey(true);
                   try {
-                    await window.hermesAPI.generateApiServerKey(profile);
+                    await window.athenaAPI.generateApiServerKey(profile);
                     const status =
-                      await window.hermesAPI.getApiServerKeyStatus(profile);
+                      await window.athenaAPI.getApiServerKeyStatus(profile);
                     setApiKeyStatus(status);
                   } catch {
                     // fail silently
@@ -640,7 +640,7 @@ function PlatformCard({
           {platform.docs_url && (
             <button
               className="btn-ghost gateway-icon-action"
-              onClick={() => window.hermesAPI.openExternal(platform.docs_url)}
+              onClick={() => window.athenaAPI.openExternal(platform.docs_url)}
               title={t("gateway.docsTooltip")}
             >
               <ExternalLink size={15} />

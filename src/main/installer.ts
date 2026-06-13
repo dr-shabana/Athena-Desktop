@@ -24,25 +24,25 @@ import { HIDDEN_SUBPROCESS_OPTIONS } from "./process-options";
 
 const IS_WINDOWS = process.platform === "win32";
 
-// Resolve the Hermes data directory. Precedence:
-//   1. HERMES_HOME env var if set (install.ps1 sets it User-scope on
+// Resolve the Athena data directory. Precedence:
+//   1. CORTEX_HOME env var if set (install.ps1 sets it User-scope on
 //      Windows; users may also override manually for WSL/custom setups).
 //   2. On Windows, probe both candidates and pick whichever already has
-//      data. install.ps1's default is %LOCALAPPDATA%\hermes, but some
-//      setups put data at ~/.hermes (e.g. a junction into WSL, or a
-//      custom -HermesHome flag on install). Without probing we'd silently
+//      data. install.ps1's default is %LOCALAPPDATA%\athena, but some
+//      setups put data at ~/.athena (e.g. a junction into WSL, or a
+//      custom -AthenaHome flag on install). Without probing we'd silently
 //      switch directories on users who had it working before.
-//   3. Fresh install fallback: %LOCALAPPDATA%\hermes on Windows (matches
-//      install.ps1's default), ~/.hermes elsewhere.
+//   3. Fresh install fallback: %LOCALAPPDATA%\athena on Windows (matches
+//      install.ps1's default), ~/.athena elsewhere.
 //
 // Motivating bug: Electron launched from the Start Menu doesn't always
-// inherit shell-set env vars, so relying on HERMES_HOME alone left
-// Windows users staring at an empty ~/.hermes while their real data
-// sat in %LOCALAPPDATA%\hermes.
-function looksLikeHermesHome(dir: string): boolean {
+// inherit shell-set env vars, so relying on CORTEX_HOME alone left
+// Windows users staring at an empty ~/.athena while their real data
+// sat in %LOCALAPPDATA%\athena.
+function looksLikeAthenaHome(dir: string): boolean {
   if (!existsSync(dir)) return false;
   return (
-    existsSync(join(dir, "hermes-agent")) ||
+    existsSync(join(dir, "athena-agent")) ||
     existsSync(join(dir, "gateway.pid")) ||
     existsSync(join(dir, "config.yaml")) ||
     existsSync(join(dir, "active_profile")) ||
@@ -50,45 +50,45 @@ function looksLikeHermesHome(dir: string): boolean {
   );
 }
 
-function defaultHermesHome(): string {
-  const homeDot = join(homedir(), ".hermes");
+function defaultAthenaHome(): string {
+  const homeDot = join(homedir(), ".athena");
   if (!IS_WINDOWS) return homeDot;
 
   const localApp = process.env.LOCALAPPDATA
-    ? join(process.env.LOCALAPPDATA, "hermes")
+    ? join(process.env.LOCALAPPDATA, "athena")
     : null;
 
-  // Prefer whichever location already has hermes data.
-  if (localApp && looksLikeHermesHome(localApp)) return localApp;
-  if (looksLikeHermesHome(homeDot)) return homeDot;
+  // Prefer whichever location already has athena data.
+  if (localApp && looksLikeAthenaHome(localApp)) return localApp;
+  if (looksLikeAthenaHome(homeDot)) return homeDot;
 
   // Neither populated yet — fall back to install.ps1's default so a
   // fresh install lines up with where the installer will write.
   return localApp ?? homeDot;
 }
 
-// A Hermes home the user explicitly pointed the app at via the "use an
+// A Athena home the user explicitly pointed the app at via the "use an
 // existing installation" flow (issue #272). Persisted in the desktop's own
-// userData dir — outside any Hermes home — so it can be read here, before
-// HERMES_HOME is resolved. Strictly additive: with no override file the
+// userData dir — outside any Athena home — so it can be read here, before
+// CORTEX_HOME is resolved. Strictly additive: with no override file the
 // behaviour is identical to before.
-function hermesHomeOverrideFile(): string {
+function athenaHomeOverrideFile(): string {
   // `app` is undefined outside an Electron runtime (e.g. unit tests) —
   // optional-chain it so module load degrades to "no override" instead of
   // throwing.
   const userData = app?.getPath?.("userData");
-  return userData ? join(userData, "hermes-home.json") : "";
+  return userData ? join(userData, "athena-home.json") : "";
 }
 
-function readHermesHomeOverride(): string {
+function readAthenaHomeOverride(): string {
   try {
-    const file = hermesHomeOverrideFile();
+    const file = athenaHomeOverrideFile();
     if (!file || !existsSync(file)) return "";
     const parsed = JSON.parse(readFileSync(file, "utf-8")) as {
-      hermesHome?: unknown;
+      athenaHome?: unknown;
     };
     const p =
-      typeof parsed.hermesHome === "string" ? parsed.hermesHome.trim() : "";
+      typeof parsed.athenaHome === "string" ? parsed.athenaHome.trim() : "";
     // Ignore a stale override whose directory no longer exists.
     return p && existsSync(p) ? p : "";
   } catch {
@@ -96,10 +96,10 @@ function readHermesHomeOverride(): string {
   }
 }
 
-/** Persist (when `home` is set) or clear (when "") the Hermes home override. */
-export function setHermesHomeOverride(home: string): void {
+/** Persist (when `home` is set) or clear (when "") the Athena home override. */
+export function setAthenaHomeOverride(home: string): void {
   try {
-    const file = hermesHomeOverrideFile();
+    const file = athenaHomeOverrideFile();
     if (!file) return;
     if (!home.trim()) {
       if (existsSync(file)) unlinkSync(file);
@@ -107,7 +107,7 @@ export function setHermesHomeOverride(home: string): void {
     }
     writeFileSync(
       file,
-      JSON.stringify({ hermesHome: home.trim() }, null, 2),
+      JSON.stringify({ athenaHome: home.trim() }, null, 2),
       "utf-8",
     );
   } catch {
@@ -115,12 +115,12 @@ export function setHermesHomeOverride(home: string): void {
   }
 }
 
-export const HERMES_HOME =
-  process.env.HERMES_HOME?.trim() ||
-  readHermesHomeOverride() ||
-  defaultHermesHome();
-export const HERMES_REPO = join(HERMES_HOME, "hermes-agent");
-export const HERMES_VENV = join(HERMES_REPO, "venv");
+export const CORTEX_HOME =
+  process.env.CORTEX_HOME?.trim() ||
+  readAthenaHomeOverride() ||
+  defaultAthenaHome();
+export const CORTEX_REPO = join(CORTEX_HOME, "athena-agent");
+export const CORTEX_VENV = join(CORTEX_REPO, "venv");
 // On Windows, use `pythonw.exe` (the GUI-subsystem interpreter that ships in
 // every venv) instead of `python.exe` so that subprocess spawns don't flash
 // a blank console window before `windowsHide: true` / CREATE_NO_WINDOW takes
@@ -132,34 +132,34 @@ export const HERMES_VENV = join(HERMES_REPO, "venv");
 // for it regardless of creation flags. It's a bit-identical interpreter
 // otherwise — same modules, same stdout/stderr behaviour over piped stdio
 // (which is what every call site here uses).
-export const HERMES_PYTHON = IS_WINDOWS
-  ? join(HERMES_VENV, "Scripts", "pythonw.exe")
-  : join(HERMES_VENV, "bin", "python");
-export const HERMES_SCRIPT = IS_WINDOWS
-  ? join(HERMES_VENV, "Scripts", "hermes.exe")
-  : join(HERMES_REPO, "hermes");
-export const HERMES_ENV_FILE = join(HERMES_HOME, ".env");
-export const HERMES_CONFIG_FILE = join(HERMES_HOME, "config.yaml");
-export const HERMES_AUTH_FILE = join(HERMES_HOME, "auth.json");
+export const CORTEX_PYTHON = IS_WINDOWS
+  ? join(CORTEX_VENV, "Scripts", "pythonw.exe")
+  : join(CORTEX_VENV, "bin", "python");
+export const CORTEX_SCRIPT = IS_WINDOWS
+  ? join(CORTEX_VENV, "Scripts", "athena.exe")
+  : join(CORTEX_REPO, "athena");
+export const CORTEX_ENV_FILE = join(CORTEX_HOME, ".env");
+export const CORTEX_CONFIG_FILE = join(CORTEX_HOME, "config.yaml");
+export const CORTEX_AUTH_FILE = join(CORTEX_HOME, "auth.json");
 
-/** The Python + hermes-script paths for a Hermes install rooted at `home`,
+/** The Python + athena-script paths for a Athena install rooted at `home`,
  *  in the layout the desktop's own installer produces. */
 function installBinariesFor(home: string): { python: string; script: string } {
-  const repo = join(home, "hermes-agent");
+  const repo = join(home, "athena-agent");
   const venv = join(repo, "venv");
   return IS_WINDOWS
     ? {
         python: join(venv, "Scripts", "python.exe"),
-        script: join(venv, "Scripts", "hermes.exe"),
+        script: join(venv, "Scripts", "athena.exe"),
       }
-    : { python: join(venv, "bin", "python"), script: join(repo, "hermes") };
+    : { python: join(venv, "bin", "python"), script: join(repo, "athena") };
 }
 
-export function hermesCliArgs(args: string[] = []): string[] {
+export function athenaCliArgs(args: string[] = []): string[] {
   if (process.platform === "win32") {
-    return ["-m", "hermes_cli.main", ...args];
+    return ["-m", "cortex_cli.main", ...args];
   }
-  return [HERMES_SCRIPT, ...args];
+  return [CORTEX_SCRIPT, ...args];
 }
 
 export interface InstallStatus {
@@ -183,13 +183,13 @@ export function getEnhancedPath(): string {
   const extra = (
     IS_WINDOWS
       ? [
-          // Bundled by install.ps1 inside HERMES_HOME — these matter when the
+          // Bundled by install.ps1 inside CORTEX_HOME — these matter when the
           // user's system PATH doesn't include git or node yet.
-          join(HERMES_HOME, "git", "bin"),
-          join(HERMES_HOME, "git", "cmd"),
-          join(HERMES_HOME, "git", "usr", "bin"),
-          join(HERMES_HOME, "node"),
-          join(HERMES_VENV, "Scripts"),
+          join(CORTEX_HOME, "git", "bin"),
+          join(CORTEX_HOME, "git", "cmd"),
+          join(CORTEX_HOME, "git", "usr", "bin"),
+          join(CORTEX_HOME, "node"),
+          join(CORTEX_VENV, "Scripts"),
           // Common user/system installs used when Claw3D setup runs before or
           // outside the bundled installer.
           process.env.NVM_SYMLINK,
@@ -213,7 +213,7 @@ export function getEnhancedPath(): string {
       : [
           join(home, ".local", "bin"),
           join(home, ".cargo", "bin"),
-          join(HERMES_VENV, "bin"),
+          join(CORTEX_VENV, "bin"),
           // Node version manager shim directories
           join(home, ".volta", "bin"),
           join(home, ".asdf", "shims"),
@@ -260,21 +260,21 @@ function resolveNvmBin(home: string): string[] {
 
 function activeEnvFile(profile: string): string {
   return profile === "default"
-    ? HERMES_ENV_FILE
-    : join(HERMES_HOME, "profiles", profile, ".env");
+    ? CORTEX_ENV_FILE
+    : join(CORTEX_HOME, "profiles", profile, ".env");
 }
 
 function activeAuthFile(profile: string): string {
   return profile === "default"
-    ? HERMES_AUTH_FILE
-    : join(HERMES_HOME, "profiles", profile, "auth.json");
+    ? CORTEX_AUTH_FILE
+    : join(CORTEX_HOME, "profiles", profile, "auth.json");
 }
 
 // Canonical env-var name per known model provider. Keys here are values
 // the user might see in `model.provider` in config.yaml; values are the
 // env vars the gateway expects to read from .env. Names that don't
 // appear here either don't need a key (local providers, nous) or have
-// OAuth-style credentials (covered separately via hasHermesAuthCredential).
+// OAuth-style credentials (covered separately via hasAthenaAuthCredential).
 //
 // Used by the install-gate check below. Previously that check
 // hard-coded only OPENROUTER_API_KEY / ANTHROPIC_API_KEY / OPENAI_API_KEY,
@@ -315,7 +315,7 @@ const PROVIDER_ENV_KEYS: Record<string, string> = {
 };
 
 // When provider is "custom" or "auto", the desktop's setup flow falls
-// back to recognizing the endpoint by base URL. Same patterns hermes.ts
+// back to recognizing the endpoint by base URL. Same patterns athena.ts
 // uses for runtime header injection.
 const URL_TO_ENV_KEY: Array<[RegExp, string]> = [
   [/openrouter\.ai/i, "OPENROUTER_API_KEY"],
@@ -396,7 +396,7 @@ export type InstallTargetState = "fresh" | "update" | "replace";
 
 export interface InstallTargetInfo {
   /** Where the desktop will install — shown to the user before they commit. */
-  hermesHome: string;
+  athenaHome: string;
   repoPath: string;
   /** What the installer will do to `repoPath`:
    *  - `fresh`   — nothing is there; a clean install.
@@ -418,20 +418,20 @@ export function classifyInstallTarget(
 
 /** Inspect the install target so the renderer can warn before installing. */
 export function inspectInstallTarget(): InstallTargetInfo {
-  const repoExists = existsSync(HERMES_REPO);
-  const repoIsGitRepo = repoExists && existsSync(join(HERMES_REPO, ".git"));
+  const repoExists = existsSync(CORTEX_REPO);
+  const repoIsGitRepo = repoExists && existsSync(join(CORTEX_REPO, ".git"));
   return {
-    hermesHome: HERMES_HOME,
-    repoPath: HERMES_REPO,
+    athenaHome: CORTEX_HOME,
+    repoPath: CORTEX_REPO,
     state: classifyInstallTarget(repoExists, repoIsGitRepo),
   };
 }
 
-/** True when `dir` is a Hermes home the desktop can drive as-is — it must
- *  contain a `hermes-agent` install with the venv binaries in the layout the
+/** True when `dir` is a Athena home the desktop can drive as-is — it must
+ *  contain a `athena-agent` install with the venv binaries in the layout the
  *  desktop expects. A hand-rolled install with a different layout fails here
  *  rather than being silently adopted into a broken state (issue #272). */
-export function validateHermesHome(dir: string): boolean {
+export function validateAthenaHome(dir: string): boolean {
   const home = dir?.trim();
   if (!home || !existsSync(home)) return false;
   const { python, script } = installBinariesFor(home);
@@ -457,7 +457,7 @@ export function checkInstallStatus(): InstallStatus {
   // `python --version` check used to run here adds 1–10s of cold-start
   // latency, so it now lives in `verifyInstall()` and is invoked lazily
   // by the renderer after the main UI is mounted.
-  const installed = existsSync(HERMES_PYTHON) && existsSync(HERMES_SCRIPT);
+  const installed = existsSync(CORTEX_PYTHON) && existsSync(CORTEX_SCRIPT);
   const envFile = activeEnvFile(activeProfile);
   const authFile = activeAuthFile(activeProfile);
   const configured = existsSync(envFile) || existsSync(authFile);
@@ -465,7 +465,7 @@ export function checkInstallStatus(): InstallStatus {
   const verified = installed;
 
   // Local/custom providers don't need an API key. OAuth-backed providers
-  // (including credential-pool entries) can be configured through Hermes
+  // (including credential-pool entries) can be configured through Athena
   // auth.json instead of .env, so check those before falling back to keys.
   let mc: { provider: string; model: string; baseUrl: string } | null = null;
   try {
@@ -501,21 +501,21 @@ let _verifyCache: { ok: boolean; ts: number } | null = null;
 const VERIFY_TTL_MS = 5 * 60 * 1000;
 
 export async function verifyInstall(): Promise<boolean> {
-  if (!existsSync(HERMES_PYTHON) || !existsSync(HERMES_SCRIPT)) return false;
+  if (!existsSync(CORTEX_PYTHON) || !existsSync(CORTEX_SCRIPT)) return false;
   if (_verifyCache && Date.now() - _verifyCache.ts < VERIFY_TTL_MS) {
     return _verifyCache.ok;
   }
   return new Promise((resolve) => {
     execFile(
-      HERMES_PYTHON,
-      hermesCliArgs(["--version"]),
+      CORTEX_PYTHON,
+      athenaCliArgs(["--version"]),
       {
-        cwd: HERMES_REPO,
+        cwd: CORTEX_REPO,
         env: {
           ...process.env,
           PATH: getEnhancedPath(),
           HOME: homedir(),
-          HERMES_HOME,
+          CORTEX_HOME,
         },
         timeout: 15000,
         ...HIDDEN_SUBPROCESS_OPTIONS,
@@ -533,9 +533,9 @@ export async function verifyInstall(): Promise<boolean> {
 let _cachedVersion: string | null = null;
 let _versionFetching = false;
 
-export async function getHermesVersion(): Promise<string | null> {
+export async function getAthenaVersion(): Promise<string | null> {
   if (_cachedVersion !== null) return _cachedVersion;
-  if (!existsSync(HERMES_PYTHON) || !existsSync(HERMES_SCRIPT)) return null;
+  if (!existsSync(CORTEX_PYTHON) || !existsSync(CORTEX_SCRIPT)) return null;
   if (_versionFetching) {
     // Wait for the in-flight fetch but cap the wait. The execFile below
     // has a 15s timeout and its callback unconditionally clears
@@ -559,15 +559,15 @@ export async function getHermesVersion(): Promise<string | null> {
   _versionFetching = true;
   return new Promise((resolve) => {
     execFile(
-      HERMES_PYTHON,
-      hermesCliArgs(["--version"]),
+      CORTEX_PYTHON,
+      athenaCliArgs(["--version"]),
       {
-        cwd: HERMES_REPO,
+        cwd: CORTEX_REPO,
         env: {
           ...process.env,
           PATH: getEnhancedPath(),
           HOME: homedir(),
-          HERMES_HOME,
+          CORTEX_HOME,
         },
         timeout: 15000,
         ...HIDDEN_SUBPROCESS_OPTIONS,
@@ -589,18 +589,18 @@ export function clearVersionCache(): void {
   _cachedVersion = null;
 }
 
-export function runHermesDoctor(): string {
-  if (!existsSync(HERMES_PYTHON) || !existsSync(HERMES_SCRIPT)) {
-    return "Hermes is not installed.";
+export function runAthenaDoctor(): string {
+  if (!existsSync(CORTEX_PYTHON) || !existsSync(CORTEX_SCRIPT)) {
+    return "Athena is not installed.";
   }
   try {
-    const output = execFileSync(HERMES_PYTHON, hermesCliArgs(["doctor"]), {
-      cwd: HERMES_REPO,
+    const output = execFileSync(CORTEX_PYTHON, athenaCliArgs(["doctor"]), {
+      cwd: CORTEX_REPO,
       env: {
         ...process.env,
         PATH: getEnhancedPath(),
         HOME: homedir(),
-        HERMES_HOME,
+        CORTEX_HOME,
       },
       stdio: ["ignore", "pipe", "pipe"],
       timeout: 30000,
@@ -615,7 +615,7 @@ export function runHermesDoctor(): string {
 
 const OPENCLAW_DIR_NAMES = [".openclaw", ".clawdbot", ".moldbot"];
 
-// hermes-desktop itself creates ~/.openclaw/claw3d/ as a stub when preparing
+// athena-desktop itself creates ~/.openclaw/claw3d/ as a stub when preparing
 // Claw3D settings (see claw3d.ts:writeClaw3dSettings), so a bare `existsSync`
 // check would surface that empty stub as a "real" OpenClaw install and
 // prompt the user to migrate from themselves. Require at least one regular
@@ -653,8 +653,8 @@ export function checkOpenClawExists(home: string = homedir()): {
 export async function runClawMigrate(
   onProgress: (progress: InstallProgress) => void,
 ): Promise<void> {
-  if (!existsSync(HERMES_PYTHON) || !existsSync(HERMES_SCRIPT)) {
-    throw new Error("Hermes is not installed.");
+  if (!existsSync(CORTEX_PYTHON) || !existsSync(CORTEX_SCRIPT)) {
+    throw new Error("Athena is not installed.");
   }
 
   const openclaw = checkOpenClawExists();
@@ -677,15 +677,15 @@ export async function runClawMigrate(
   emit(`Migrating from ${openclaw.path}...\n`);
 
   return new Promise((resolve, reject) => {
-    const args = hermesCliArgs(["claw", "migrate", "--preset", "full"]);
+    const args = athenaCliArgs(["claw", "migrate", "--preset", "full"]);
 
-    const proc = spawn(HERMES_PYTHON, args, {
-      cwd: HERMES_REPO,
+    const proc = spawn(CORTEX_PYTHON, args, {
+      cwd: CORTEX_REPO,
       env: {
         ...process.env,
         PATH: getEnhancedPath(),
         HOME: homedir(),
-        HERMES_HOME,
+        CORTEX_HOME,
         TERM: "dumb",
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -715,11 +715,11 @@ export async function runClawMigrate(
   });
 }
 
-export async function runHermesUpdate(
+export async function runAthenaUpdate(
   onProgress: (progress: InstallProgress) => void,
 ): Promise<void> {
-  if (!existsSync(HERMES_PYTHON) || !existsSync(HERMES_SCRIPT)) {
-    throw new Error("Hermes is not installed. Please install it first.");
+  if (!existsSync(CORTEX_PYTHON) || !existsSync(CORTEX_SCRIPT)) {
+    throw new Error("Athena is not installed. Please install it first.");
   }
 
   let log = "";
@@ -728,22 +728,22 @@ export async function runHermesUpdate(
     onProgress({
       step: 1,
       totalSteps: 1,
-      title: "Updating Hermes Agent",
+      title: "Updating Athena Agent",
       detail: text.trim().slice(0, 120),
       log,
     });
   }
 
-  emit("Running hermes update...\n");
+  emit("Running athena update...\n");
 
   return new Promise((resolve, reject) => {
-    const proc = spawn(HERMES_PYTHON, hermesCliArgs(["update"]), {
-      cwd: HERMES_REPO,
+    const proc = spawn(CORTEX_PYTHON, athenaCliArgs(["update"]), {
+      cwd: CORTEX_REPO,
       env: {
         ...process.env,
         PATH: getEnhancedPath(),
         HOME: homedir(),
-        HERMES_HOME,
+        CORTEX_HOME,
         TERM: "dumb",
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -807,9 +807,9 @@ const STAGE_MARKERS: { pattern: RegExp; step: number; title: string }[] = [
   },
   {
     pattern:
-      /Cloning|cloning|Updating.*repository|Repository|Installing to .*hermes-agent|Downloading PortableGit/i,
+      /Cloning|cloning|Updating.*repository|Repository|Installing to .*athena-agent|Downloading PortableGit/i,
     step: 4,
-    title: "Downloading Hermes Agent",
+    title: "Downloading Athena Agent",
   },
   {
     pattern: /Creating virtual|virtual environment|uv venv|\bvenv\b/i,
@@ -828,7 +828,7 @@ const STAGE_MARKERS: { pattern: RegExp; step: number; title: string }[] = [
     // used to match here and pinned the progress bar at 100% while Playwright
     // and TUI deps were still running — see issue #104.
     pattern:
-      /Installation complete|hermes command ready|Configuration directory ready|Hermes (installation )?(finished|is ready)/i,
+      /Installation complete|athena command ready|Configuration directory ready|Athena (installation )?(finished|is ready)/i,
     step: 7,
     title: "Finishing setup",
   },
@@ -864,7 +864,7 @@ export async function runInstall(
     });
   }
 
-  emit("Running official Hermes install script...\n");
+  emit("Running official Athena install script...\n");
 
   if (IS_WINDOWS) {
     return runInstallWindows(emit);
@@ -911,7 +911,7 @@ export async function runInstall(
       const shellProfile = getShellProfile(home);
       const installCmd = [
         shellProfile ? `source "${shellProfile}" 2>/dev/null;` : "",
-        "curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash -s -- --skip-setup",
+        "curl -fsSL https://raw.githubusercontent.com/dr-shabana/athena-agent/main/scripts/install.sh | bash -s -- --skip-setup",
       ].join(" ");
 
       const basePath = getEnhancedPath();
@@ -943,10 +943,10 @@ export async function runInstall(
         } else {
           // The install script can exit non-zero due to benign issues
           // (e.g. git stash pop failure on already-clean repo).
-          // If Hermes is actually installed and working, treat as success.
-          if (existsSync(HERMES_PYTHON) && existsSync(HERMES_SCRIPT)) {
+          // If Athena is actually installed and working, treat as success.
+          if (existsSync(CORTEX_PYTHON) && existsSync(CORTEX_SCRIPT)) {
             emit(
-              "\nInstall script exited with warnings, but Hermes is installed successfully.\n",
+              "\nInstall script exited with warnings, but Athena is installed successfully.\n",
             );
             resolve();
           } else {
@@ -995,16 +995,16 @@ function resolvePowerShellExe(): string {
 
 async function runInstallWindows(emit: (t: string) => void): Promise<void> {
   // We can't `irm | iex` and pass parameters, and we want to override the
-  // upstream defaults (which install to %LOCALAPPDATA%\hermes) so the
-  // desktop app's HERMES_HOME == ~\.hermes convention keeps working.
+  // upstream defaults (which install to %LOCALAPPDATA%\athena) so the
+  // desktop app's CORTEX_HOME == ~\.athena convention keeps working.
   // Strategy: write a small wrapper .ps1 to %TEMP%, run it with -File.
   const home = homedir();
-  const hermesHome = HERMES_HOME;
-  const installDir = HERMES_REPO;
+  const athenaHome = CORTEX_HOME;
+  const installDir = CORTEX_REPO;
 
   const wrapperPath = join(
     tmpdir(),
-    `hermes-install-${randomBytes(6).toString("hex")}.ps1`,
+    `athena-install-${randomBytes(6).toString("hex")}.ps1`,
   );
 
   // The wrapper downloads install.ps1 to a sibling temp file and invokes it
@@ -1014,8 +1014,8 @@ async function runInstallWindows(emit: (t: string) => void): Promise<void> {
     // Force TLS 1.2 for older Windows PowerShell 5.1 hosts that still default
     // to TLS 1.0 — github raw refuses TLS < 1.2.
     "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}",
-    "$url = 'https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.ps1'",
-    `$installer = Join-Path $env:TEMP ("hermes-install-script-" + [guid]::NewGuid().ToString() + ".ps1")`,
+    "$url = 'https://raw.githubusercontent.com/dr-shabana/athena-agent/main/scripts/install.ps1'",
+    `$installer = Join-Path $env:TEMP ("athena-install-script-" + [guid]::NewGuid().ToString() + ".ps1")`,
     // Windows PowerShell 5.1 parses BOM-less files as the legacy ANSI codepage,
     // which mangles the non-ASCII glyphs in install.ps1 and produces parse
     // errors (see issue #149). Re-save with a UTF-8 BOM so PS 5.1 reads it as
@@ -1024,7 +1024,7 @@ async function runInstallWindows(emit: (t: string) => void): Promise<void> {
     "$text = if ($resp.Content -is [byte[]]) { [System.Text.Encoding]::UTF8.GetString($resp.Content) } else { [string]$resp.Content }",
     "if ($text.Length -gt 0 -and $text[0] -eq [char]0xFEFF) { $text = $text.Substring(1) }",
     "[System.IO.File]::WriteAllText($installer, $text, (New-Object System.Text.UTF8Encoding $true))",
-    `& $installer -SkipSetup -HermesHome ${psQuote(hermesHome)} -InstallDir ${psQuote(installDir)}`,
+    `& $installer -SkipSetup -AthenaHome ${psQuote(athenaHome)} -InstallDir ${psQuote(installDir)}`,
     "$exit = $LASTEXITCODE",
     "Remove-Item -Force -ErrorAction SilentlyContinue $installer",
     "exit $exit",
@@ -1058,7 +1058,7 @@ async function runInstallWindows(emit: (t: string) => void): Promise<void> {
         env: {
           ...process.env,
           PATH: basePath,
-          HERMES_HOME: hermesHome,
+          CORTEX_HOME: athenaHome,
           // Hint that we're not interactive so install.ps1 doesn't `pause`
           // (the .cmd wrapper does on failure, but -File on .ps1 won't).
           NO_COLOR: "1",
@@ -1088,15 +1088,15 @@ async function runInstallWindows(emit: (t: string) => void): Promise<void> {
         return;
       }
       // Same tolerance as the bash path: if the binary tree exists, count it.
-      if (existsSync(HERMES_PYTHON) && existsSync(HERMES_SCRIPT)) {
+      if (existsSync(CORTEX_PYTHON) && existsSync(CORTEX_SCRIPT)) {
         emit(
-          "\nInstall script exited with warnings, but Hermes is installed successfully.\n",
+          "\nInstall script exited with warnings, but Athena is installed successfully.\n",
         );
         resolve();
       } else {
         reject(
           new Error(
-            `Installation failed (exit code ${code}). Open PowerShell and try: irm https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.ps1 | iex`,
+            `Installation failed (exit code ${code}). Open PowerShell and try: irm https://raw.githubusercontent.com/dr-shabana/athena-agent/main/scripts/install.ps1 | iex`,
           ),
         );
       }
@@ -1122,27 +1122,27 @@ async function runInstallWindows(emit: (t: string) => void): Promise<void> {
 //  Backup & Import
 // ────────────────────────────────────────────────────
 
-export async function runHermesBackup(
+export async function runAthenaBackup(
   profile?: string,
 ): Promise<{ success: boolean; path?: string; error?: string }> {
-  if (!existsSync(HERMES_PYTHON) || !existsSync(HERMES_SCRIPT)) {
-    return { success: false, error: "Hermes is not installed." };
+  if (!existsSync(CORTEX_PYTHON) || !existsSync(CORTEX_SCRIPT)) {
+    return { success: false, error: "Athena is not installed." };
   }
-  const args = hermesCliArgs();
+  const args = athenaCliArgs();
   if (profile && profile !== "default") args.push("-p", profile);
   args.push("backup");
 
   return new Promise((resolve) => {
     execFile(
-      HERMES_PYTHON,
+      CORTEX_PYTHON,
       args,
       {
-        cwd: HERMES_REPO,
+        cwd: CORTEX_REPO,
         env: {
           ...process.env,
           PATH: getEnhancedPath(),
           HOME: homedir(),
-          HERMES_HOME,
+          CORTEX_HOME,
           TERM: "dumb",
         },
         timeout: 120000,
@@ -1170,7 +1170,7 @@ export async function runHermesBackup(
   });
 }
 
-export async function runHermesImport(
+export async function runAthenaImport(
   archivePath: string,
   profile?: string,
 ): Promise<{ success: boolean; error?: string }> {
@@ -1179,24 +1179,24 @@ export async function runHermesImport(
     return { success: false, error: archive.error };
   }
 
-  if (!existsSync(HERMES_PYTHON) || !existsSync(HERMES_SCRIPT)) {
-    return { success: false, error: "Hermes is not installed." };
+  if (!existsSync(CORTEX_PYTHON) || !existsSync(CORTEX_SCRIPT)) {
+    return { success: false, error: "Athena is not installed." };
   }
-  const args = hermesCliArgs();
+  const args = athenaCliArgs();
   if (profile && profile !== "default") args.push("-p", profile);
   args.push("import", archive.path);
 
   return new Promise((resolve) => {
     execFile(
-      HERMES_PYTHON,
+      CORTEX_PYTHON,
       args,
       {
-        cwd: HERMES_REPO,
+        cwd: CORTEX_REPO,
         env: {
           ...process.env,
           PATH: getEnhancedPath(),
           HOME: homedir(),
-          HERMES_HOME,
+          CORTEX_HOME,
           TERM: "dumb",
         },
         timeout: 120000,
@@ -1243,21 +1243,21 @@ export function validateImportArchivePath(
 //  Debug dump
 // ────────────────────────────────────────────────────
 
-export function runHermesDump(): Promise<string> {
-  if (!existsSync(HERMES_PYTHON) || !existsSync(HERMES_SCRIPT)) {
-    return Promise.resolve("Hermes is not installed.");
+export function runAthenaDump(): Promise<string> {
+  if (!existsSync(CORTEX_PYTHON) || !existsSync(CORTEX_SCRIPT)) {
+    return Promise.resolve("Athena is not installed.");
   }
   return new Promise((resolve) => {
     execFile(
-      HERMES_PYTHON,
-      hermesCliArgs(["dump"]),
+      CORTEX_PYTHON,
+      athenaCliArgs(["dump"]),
       {
-        cwd: HERMES_REPO,
+        cwd: CORTEX_REPO,
         env: {
           ...process.env,
           PATH: getEnhancedPath(),
           HOME: homedir(),
-          HERMES_HOME,
+          CORTEX_HOME,
           TERM: "dumb",
         },
         timeout: 30000,
@@ -1293,7 +1293,7 @@ export interface MemoryProviderInfo {
 export function discoverMemoryProviders(
   profile?: string,
 ): MemoryProviderInfo[] {
-  const pluginsDir = join(HERMES_REPO, "plugins", "memory");
+  const pluginsDir = join(CORTEX_REPO, "plugins", "memory");
   if (!existsSync(pluginsDir)) return [];
 
   const activeProvider = getActiveMemoryProvider(profile);
@@ -1459,7 +1459,7 @@ export function readLogs(
   logFile = "agent.log",
   lines = 200,
 ): { content: string; path: string } {
-  const logsDir = join(HERMES_HOME, "logs");
+  const logsDir = join(CORTEX_HOME, "logs");
   // Sanitize: only allow known log file names
   const allowed = ["agent.log", "errors.log", "gateway.log"];
   const file = allowed.includes(logFile) ? logFile : "agent.log";

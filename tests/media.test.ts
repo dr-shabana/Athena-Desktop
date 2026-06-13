@@ -28,7 +28,7 @@ describe("materializeDataUrlToTemp", () => {
     expect(path).toBeTruthy();
     expect(extname(path || "")).toBe(".png");
     expect(existsSync(path || "")).toBe(true);
-    expect(readFileSync(path || "", "utf-8")).toBe("Hermes");
+    expect(readFileSync(path || "", "utf-8")).toBe("Athena");
 
     if (path) rmSync(path, { force: true });
   });

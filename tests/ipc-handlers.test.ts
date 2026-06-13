@@ -59,10 +59,10 @@ describe("IPC Handler ↔ Preload Consistency", () => {
 
 describe("New IPC handlers from v0.8/v0.9 features", () => {
   const newChannels = [
-    "run-hermes-backup",
-    "run-hermes-import",
+    "run-athena-backup",
+    "run-athena-import",
     "read-logs",
-    "run-hermes-dump",
+    "run-athena-dump",
     "list-mcp-servers",
     "add-mcp-server",
     "remove-mcp-server",
@@ -90,9 +90,9 @@ describe("Legacy IPC handlers preserved", () => {
   const legacyChannels = [
     "check-install",
     "start-install",
-    "get-hermes-version",
-    "run-hermes-doctor",
-    "run-hermes-update",
+    "get-athena-version",
+    "run-athena-doctor",
+    "run-athena-update",
     "get-env",
     "set-env",
     "get-config",

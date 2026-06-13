@@ -34,17 +34,17 @@ import {
   verifyInstall,
   runInstall,
   inspectInstallTarget,
-  validateHermesHome,
-  setHermesHomeOverride,
-  getHermesVersion,
+  validateAthenaHome,
+  setAthenaHomeOverride,
+  getAthenaVersion,
   clearVersionCache,
-  runHermesDoctor,
-  runHermesUpdate,
+  runAthenaDoctor,
+  runAthenaUpdate,
   checkOpenClawExists,
   runClawMigrate,
-  runHermesBackup,
-  runHermesImport,
-  runHermesDump,
+  runAthenaBackup,
+  runAthenaImport,
+  runAthenaDump,
   discoverMemoryProviders,
   readLogs,
   InstallProgress,
@@ -61,10 +61,10 @@ import {
 } from "./mcp-servers";
 import { updaterLogger } from "./updater-log";
 import {
-  runHermesAuthLogin,
-  cancelHermesAuthLogin,
+  runAthenaAuthLogin,
+  cancelAthenaAuthLogin,
   detectDeviceCode,
-} from "./hermes-auth";
+} from "./athena-auth";
 import {
   isRemoteMode,
   isRemoteOnlyMode,
@@ -82,7 +82,7 @@ import {
   setSshRemoteApiKey,
   getRemoteAuthHeader,
   resolvePendingClarify,
-} from "./hermes";
+} from "./athena";
 import {
   startSshTunnel,
   stopSshTunnel,
@@ -113,7 +113,7 @@ import {
   setEnvValue,
   getConfigValue,
   setConfigValue,
-  getHermesHome,
+  getAthenaHome,
   getModelConfig,
   setModelConfig,
   getCredentialPool,
@@ -257,7 +257,7 @@ import {
   sshSetEnvValue,
   sshGetConfigValue,
   sshSetConfigValue,
-  sshGetHermesHome,
+  sshGetAthenaHome,
   sshGetModelConfig,
   sshSetModelConfig,
   sshListSessions,
@@ -270,7 +270,7 @@ import {
   sshStartGateway,
   sshStopGateway,
   sshReadRemoteApiKey,
-  sshGetHermesVersion,
+  sshGetAthenaVersion,
   sshReadLogs,
   sshGetPlatformEnabled,
   sshSetPlatformEnabled,
@@ -481,47 +481,47 @@ function setupIPC(): void {
 
   // Pre-install inspection + "use an existing installation" (issue #272).
   ipcMain.handle("inspect-install-target", () => inspectInstallTarget());
-  ipcMain.handle("validate-hermes-home", (_event, dir: string) =>
-    validateHermesHome(dir),
+  ipcMain.handle("validate-athena-home", (_event, dir: string) =>
+    validateAthenaHome(dir),
   );
-  ipcMain.handle("adopt-hermes-home", (_event, dir: string) => {
-    if (!validateHermesHome(dir)) return false;
-    // Persist the choice only. HERMES_HOME is resolved once at module
+  ipcMain.handle("adopt-athena-home", (_event, dir: string) => {
+    if (!validateAthenaHome(dir)) return false;
+    // Persist the choice only. CORTEX_HOME is resolved once at module
     // load, so the override takes effect on the next launch — the renderer
     // asks the user to restart. (An app-driven relaunch is unreliable
     // under the dev server, which is torn down with the process.)
-    setHermesHomeOverride(dir);
+    setAthenaHomeOverride(dir);
     return true;
   });
   ipcMain.handle("quit-app", () => app.quit());
 
-  // Hermes engine info
-  ipcMain.handle("get-hermes-version", async () => {
+  // Athena engine info
+  ipcMain.handle("get-athena-version", async () => {
     const conn = getConnectionConfig();
-    if (conn.mode === "ssh" && conn.ssh) return sshGetHermesVersion(conn.ssh);
-    return getHermesVersion();
+    if (conn.mode === "ssh" && conn.ssh) return sshGetAthenaVersion(conn.ssh);
+    return getAthenaVersion();
   });
-  ipcMain.handle("refresh-hermes-version", async () => {
+  ipcMain.handle("refresh-athena-version", async () => {
     const conn = getConnectionConfig();
-    if (conn.mode === "ssh" && conn.ssh) return sshGetHermesVersion(conn.ssh);
+    if (conn.mode === "ssh" && conn.ssh) return sshGetAthenaVersion(conn.ssh);
     clearVersionCache();
-    return getHermesVersion();
+    return getAthenaVersion();
   });
-  ipcMain.handle("run-hermes-doctor", () => {
+  ipcMain.handle("run-athena-doctor", () => {
     const conn = getConnectionConfig();
     if (conn.mode === "ssh" && conn.ssh) return sshRunDoctor(conn.ssh);
-    return runHermesDoctor();
+    return runAthenaDoctor();
   });
-  ipcMain.handle("run-hermes-update", async (event) => {
+  ipcMain.handle("run-athena-update", async (event) => {
     try {
       const conn = getConnectionConfig();
       if (conn.mode === "ssh" && conn.ssh) {
         event.sender.send("install-progress", {
           step: 1,
           totalSteps: 1,
-          title: "Updating remote Hermes Agent",
-          detail: "Running hermes update over SSH...",
-          log: "Running hermes update over SSH...\n",
+          title: "Updating remote Athena Agent",
+          detail: "Running athena update over SSH...",
+          log: "Running athena update over SSH...\n",
         });
         await sshRunUpdate(conn.ssh);
         await sshStartGateway(conn.ssh);
@@ -530,7 +530,7 @@ function setupIPC(): void {
         setSshRemoteApiKey(key);
         return { success: true };
       }
-      await runHermesUpdate((progress: InstallProgress) => {
+      await runAthenaUpdate((progress: InstallProgress) => {
         event.sender.send("install-progress", progress);
       });
       return { success: true };
@@ -552,7 +552,7 @@ function setupIPC(): void {
     }
   });
 
-  // OAuth provider sign-in — spawns `hermes auth add <provider> --type
+  // OAuth provider sign-in — spawns `athena auth add <provider> --type
   // oauth`, streaming the CLI's output to the renderer's sign-in modal.
   ipcMain.handle("oauth-login", (event, provider: string, profile?: string) => {
     // Codex uses a device-code flow: it prints a URL + code instead
@@ -560,10 +560,10 @@ function setupIPC(): void {
     // open the page and pre-copy the code so the user just pastes.
     let buffer = "";
     let deviceHandled = false;
-    return runHermesAuthLogin(
+    return runAthenaAuthLogin(
       provider,
       (chunk) => {
-        // The user can close the modal mid-flow before cancelHermesAuthLogin
+        // The user can close the modal mid-flow before cancelAthenaAuthLogin
         // tears down the subprocess; any send on a destroyed sender throws.
         if (event.sender.isDestroyed()) return;
         event.sender.send("oauth-login-progress", chunk);
@@ -583,7 +583,7 @@ function setupIPC(): void {
       profile,
     );
   });
-  ipcMain.handle("oauth-login-cancel", () => cancelHermesAuthLogin());
+  ipcMain.handle("oauth-login-cancel", () => cancelAthenaAuthLogin());
 
   // Configuration (profile-aware)
   ipcMain.handle("get-locale", () => getAppLocale());
@@ -607,7 +607,7 @@ function setupIPC(): void {
   // Config-health audit + per-issue auto-fix. The renderer renders a
   // dismissible banner above the chat input and a full report in the
   // Settings → Diagnose section. Auto-fixes are additive only — never
-  // delete; always log to ~/.hermes/logs/config-fixes.log.
+  // delete; always log to ~/.cortex/logs/config-fixes.log.
   ipcMain.handle("get-config-health", (_event, profile?: string) => {
     return runConfigHealthCheck(profile);
   });
@@ -680,11 +680,11 @@ function setupIPC(): void {
     },
   );
 
-  ipcMain.handle("get-hermes-home", (_event, profile?: string) => {
+  ipcMain.handle("get-athena-home", (_event, profile?: string) => {
     const conn = getConnectionConfig();
     if (conn.mode === "ssh" && conn.ssh)
-      return sshGetHermesHome(conn.ssh, profile);
-    return getHermesHome(profile);
+      return sshGetAthenaHome(conn.ssh, profile);
+    return getAthenaHome(profile);
   });
 
   ipcMain.handle("get-model-config", (_event, profile?: string) => {
@@ -1026,7 +1026,7 @@ function setupIPC(): void {
                 .trim()
                 .slice(0, 80);
               new Notification({
-                title: "Hermes One",
+                title: "Athena Q",
                 body: preview || "Response ready",
               }).show();
             }
@@ -1038,7 +1038,7 @@ function setupIPC(): void {
             // Notify on error too if window not focused
             if (mainWindow && !mainWindow.isFocused()) {
               new Notification({
-                title: "Hermes One — Error",
+                title: "Athena Q — Error",
                 body: error.slice(0, 100),
               }).show();
             }
@@ -1204,12 +1204,12 @@ function setupIPC(): void {
     if (conn.mode === "remote") {
       // The remote server runs its own gateway; nothing to start locally.
       // Without this guard we'd fall through to `startGateway()` and
-      // spawn a non-existent local hermes-agent (issue #266).
+      // spawn a non-existent local athena-agent (issue #266).
       return {
         success: false,
         running: false,
         error:
-          "Remote mode points at an already-running Hermes server. Start or restart the gateway on that remote host.",
+          "Remote mode points at an already-running Athena server. Start or restart the gateway on that remote host.",
       };
     }
     return startGatewayDetailed();
@@ -1971,20 +1971,20 @@ function setupIPC(): void {
   });
 
   // Backup / Import
-  ipcMain.handle("run-hermes-backup", (_event, profile?: string) =>
-    runHermesBackup(profile),
+  ipcMain.handle("run-athena-backup", (_event, profile?: string) =>
+    runAthenaBackup(profile),
   );
   ipcMain.handle(
-    "run-hermes-import",
+    "run-athena-import",
     (_event, archivePath: string, profile?: string) =>
-      runHermesImport(archivePath, profile),
+      runAthenaImport(archivePath, profile),
   );
 
   // Debug dump
-  ipcMain.handle("run-hermes-dump", () => {
+  ipcMain.handle("run-athena-dump", () => {
     const conn = getConnectionConfig();
     if (conn.mode === "ssh" && conn.ssh) return sshRunDump(conn.ssh);
-    return runHermesDump();
+    return runAthenaDump();
   });
 
   // MCP servers
@@ -2140,15 +2140,15 @@ function buildMenu(): void {
       label: "Help",
       submenu: [
         {
-          label: "Hermes Agent on GitHub",
+          label: "Athena Agent on GitHub",
           click: (): void => {
-            openExternalUrl("https://github.com/NousResearch/hermes-agent/");
+            openExternalUrl("https://github.com/dr-shabana/athena-agent/");
           },
         },
         {
           label: "Report an Issue",
           click: (): void => {
-            openExternalUrl("https://github.com/fathah/hermes-desktop/issues");
+            openExternalUrl("https://github.com/dr-shabana/Athena-Desktop/issues");
           },
         },
       ],
@@ -2259,8 +2259,8 @@ if (process.env.ENABLE_CDP === "1") {
 }
 
 app.whenReady().then(() => {
-  app.setName("Hermes One");
-  electronApp.setAppUserModelId("com.nousresearch.hermes");
+  app.setName("Athena Q");
+  electronApp.setAppUserModelId("com.dr-shabana.athena");
   cleanupTempMediaFiles();
 
   // Allow microphone access for the app's own renderer (voice input). Without

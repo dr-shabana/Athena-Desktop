@@ -26,7 +26,7 @@ let testHome: string;
 
 async function freshModels(): Promise<typeof import("../src/main/models")> {
   vi.resetModules();
-  vi.stubEnv("HERMES_HOME", testHome);
+  vi.stubEnv("CORTEX_HOME", testHome);
   return await import("../src/main/models");
 }
 
@@ -56,7 +56,7 @@ function writeCustomProviders(entries: ProviderEntry[]): void {
 }
 
 beforeEach(() => {
-  testHome = mkdtempSync(join(tmpdir(), "hermes-compat-persist-"));
+  testHome = mkdtempSync(join(tmpdir(), "athena-compat-persist-"));
 });
 
 afterEach(() => {

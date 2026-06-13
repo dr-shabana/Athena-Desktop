@@ -17,7 +17,7 @@ interface LocalCommands {
 
 interface UseChatActionsArgs {
   profile?: string;
-  hermesSessionId: string | null;
+  athenaSessionId: string | null;
   messages: ChatMessage[];
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
@@ -49,7 +49,7 @@ interface UseChatActionsResult {
  */
 export function useChatActions({
   profile,
-  hermesSessionId,
+  athenaSessionId,
   messages,
   isLoading,
   setIsLoading,
@@ -84,10 +84,10 @@ export function useChatActions({
   const sendToAgent = useCallback(
     async (text: string, attachments?: Attachment[]): Promise<void> => {
       try {
-        await window.hermesAPI.sendMessage(
+        await window.athenaAPI.sendMessage(
           text,
           profile,
-          hermesSessionId || undefined,
+          athenaSessionId || undefined,
           messagesRef.current.filter(hasContent).map((m) => ({
             role: m.role,
             content: m.content,
@@ -99,7 +99,7 @@ export function useChatActions({
         // onChatError IPC already surfaces this to the user
       }
     },
-    [profile, hermesSessionId, contextFolder],
+    [profile, athenaSessionId, contextFolder],
   );
 
   const handleSend = useCallback(
@@ -138,7 +138,7 @@ export function useChatActions({
   );
 
   const handleAbort = useCallback(() => {
-    window.hermesAPI.abortChat();
+    window.athenaAPI.abortChat();
     setIsLoading(false);
     setTimeout(() => chatInputRef.current?.focus(), 50);
   }, [chatInputRef, setIsLoading]);

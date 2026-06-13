@@ -18,7 +18,7 @@ export function detectProviderFromUrl(rawUrl: string): string | null {
   if (/(^|\/\/)generativelanguage\.googleapis\.com(\/|:|$)/.test(url))
     return "google";
   if (/(^|\/\/)api\.x\.ai(\/|:|$)/.test(url)) return "xai";
-  if (/nousresearch\.com/.test(url)) return "nous";
+  if (/dr-shabana\.com/.test(url)) return "nous";
   if (/api\.xiaomimimo\.com/.test(url)) return "xiaomi";
   if (/dashscope(-intl)?\.aliyuncs\.com/.test(url)) return "qwen";
   if (/api\.minimax(i)?\.(chat|com)/.test(url)) return "minimax";

@@ -177,7 +177,7 @@ export const CarShowroom = memo(function CarShowroom({
         anchorY="middle"
         letterSpacing={0.12}
       >
-        HERMES MOTORS
+        CORTEX MOTORS
       </Text>
       {/* Display pedestal + rotating hero car near the storefront */}
       <mesh position={[1.5, 0.08, 0]} castShadow receiveShadow>

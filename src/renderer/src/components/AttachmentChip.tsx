@@ -22,7 +22,7 @@ export function AttachmentChip({
   const showImageMenu = (event: React.MouseEvent): void => {
     if (!isImage || !attachment.dataUrl) return;
     event.preventDefault();
-    window.hermesAPI.showMediaMenu(attachment.dataUrl, attachment.name, {
+    window.athenaAPI.showMediaMenu(attachment.dataUrl, attachment.name, {
       open: t("chat.media.open"),
       saveAs: t("chat.media.saveAs"),
     });
@@ -96,7 +96,7 @@ export function AttachmentChip({
             <button
               className="chat-image-preview-btn"
               onClick={() =>
-                window.hermesAPI.saveMediaFile(
+                window.athenaAPI.saveMediaFile(
                   attachment.dataUrl!,
                   attachment.name,
                 )

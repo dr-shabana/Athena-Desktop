@@ -16,8 +16,8 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
-const STATE_DB = path.join(os.homedir(), "AppData", "Local", "hermes", "state.db");
-const GATEWAY_PID_FILE = path.join(os.homedir(), "AppData", "Local", "hermes", "gateway.pid");
+const STATE_DB = path.join(os.homedir(), "AppData", "Local", "athena", "state.db");
+const GATEWAY_PID_FILE = path.join(os.homedir(), "AppData", "Local", "athena", "gateway.pid");
 
 function snapshotSessions() {
   const py = `

@@ -5,13 +5,13 @@ import { tmpdir } from "os";
 
 // Tests for auxiliary config nested YAML writer and get/set/reset functions.
 
-const TEST_DIR = join(tmpdir(), `hermes-test-aux-config-${Date.now()}`);
+const TEST_DIR = join(tmpdir(), `athena-test-aux-config-${Date.now()}`);
 
 async function importAuxConfigWithHome(
   home: string,
 ): Promise<typeof import("../src/main/auxiliary-config")> {
   vi.resetModules();
-  process.env.HERMES_HOME = home;
+  process.env.CORTEX_HOME = home;
   return await import("../src/main/auxiliary-config");
 }
 
@@ -20,7 +20,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  delete process.env.HERMES_HOME;
+  delete process.env.CORTEX_HOME;
   vi.resetModules();
   rmSync(TEST_DIR, { recursive: true, force: true });
 });

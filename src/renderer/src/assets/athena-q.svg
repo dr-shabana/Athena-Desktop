@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0F111A"/>
+      <stop offset="100%" stop-color="#131626"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#C9A84C"/>
+      <stop offset="100%" stop-color="#D4B96A"/>
+    </linearGradient>
+    <linearGradient id="gold-dim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#A88A3A"/>
+      <stop offset="100%" stop-color="#C9A84C"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="200" cy="200" r="195" fill="url(#bg)" stroke="url(#gold)" stroke-width="3"/>
+
+  <!-- Owl body -->
+  <ellipse cx="200" cy="250" rx="70" ry="80" fill="#1A1D35" stroke="url(#gold-dim)" stroke-width="1.5"/>
+
+  <!-- Left wing -->
+  <path d="M130 220 Q95 180 80 240 Q70 280 130 290" fill="#1E2140" stroke="url(#gold-dim)" stroke-width="1"/>
+  <!-- Right wing -->
+  <path d="M270 220 Q305 180 320 240 Q330 280 270 290" fill="#1E2140" stroke="url(#gold-dim)" stroke-width="1"/>
+
+  <!-- Head -->
+  <ellipse cx="200" cy="175" rx="60" ry="55" fill="#1A1D35" stroke="url(#gold-dim)" stroke-width="1.5"/>
+
+  <!-- Ear tufts -->
+  <path d="M150 135 L140 95 L165 125" fill="#1A1D35" stroke="url(#gold)" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M250 135 L260 95 L235 125" fill="#1A1D35" stroke="url(#gold)" stroke-width="1.5" stroke-linejoin="round"/>
+
+  <!-- Eye circles (facial disc) -->
+  <circle cx="175" cy="170" r="22" fill="#25284A" stroke="url(#gold-dim)" stroke-width="1"/>
+  <circle cx="225" cy="170" r="22" fill="#25284A" stroke="url(#gold-dim)" stroke-width="1"/>
+
+  <!-- Eyes -->
+  <circle cx="175" cy="170" r="10" fill="url(#gold)"/>
+  <circle cx="225" cy="170" r="10" fill="url(#gold)"/>
+  <circle cx="175" cy="170" r="5" fill="#0F111A"/>
+  <circle cx="225" cy="170" r="5" fill="#0F111A"/>
+
+  <!-- Eye highlights -->
+  <circle cx="178" cy="167" r="2.5" fill="#ECEFF7" opacity="0.6"/>
+  <circle cx="228" cy="167" r="2.5" fill="#ECEFF7" opacity="0.6"/>
+
+  <!-- Beak -->
+  <path d="M193 185 L200 200 L207 185" fill="url(#gold)" stroke="none"/>
+
+  <!-- Belly feather pattern -->
+  <path d="M175 240 Q200 250 225 240" stroke="url(#gold-dim)" stroke-width="0.8" fill="none" opacity="0.4"/>
+  <path d="M178 255 Q200 264 222 255" stroke="url(#gold-dim)" stroke-width="0.8" fill="none" opacity="0.3"/>
+  <path d="M182 270 Q200 278 218 270" stroke="url(#gold-dim)" stroke-width="0.8" fill="none" opacity="0.2"/>
+
+  <!-- Feet -->
+  <path d="M180 320 L170 345 M180 320 L185 345 M180 320 L190 340" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M220 320 L210 345 M220 320 L215 345 M220 320 L230 340" stroke="url(#gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Branch/perch -->
+  <line x1="140" y1="345" x2="260" y2="345" stroke="url(#gold)" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Q letter subtle in bottom-right -->
+  <text x="310" y="370" font-family="Georgia, serif" font-size="28" fill="url(#gold)" opacity="0.25" font-style="italic">Q</text>
+
+  <!-- Athene noctua (Little Owl) — small text -->
+  <text x="200" y="390" text-anchor="middle" font-family="Georgia, serif" font-size="10" fill="url(#gold)" opacity="0.35" letter-spacing="3">ATHENA Q</text>
+</svg>

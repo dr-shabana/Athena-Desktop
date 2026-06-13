@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EventEmitter } from "events";
 
 /**
- * Coverage for the in-app OAuth login feature (`src/main/hermes-auth.ts`):
+ * Coverage for the in-app OAuth login feature (`src/main/athena-auth.ts`):
  *
  *   - provider allowlist (`isOAuthLoginProvider`)
- *   - `runHermesAuthLogin` spawns `hermes auth add <provider> --type
+ *   - `runAthenaAuthLogin` spawns `athena auth add <provider> --type
  *     oauth`, streams output, and maps exit code → success/failure
  *   - the single-flight guard rejects a second concurrent login
- *   - `cancelHermesAuthLogin` kills the in-flight subprocess
+ *   - `cancelAthenaAuthLogin` kills the in-flight subprocess
  */
 
 interface FakeProc extends EventEmitter {
@@ -35,10 +35,10 @@ const { spawnSpy, fakeProcs } = vi.hoisted(() => {
 });
 
 vi.mock("../src/main/installer", () => ({
-  HERMES_PYTHON: "/usr/bin/python3",
-  HERMES_REPO: "/tmp/hermes-repo",
-  HERMES_HOME: "/tmp/hermes-home",
-  hermesCliArgs: (args: string[]) => args,
+  CORTEX_PYTHON: "/usr/bin/python3",
+  CORTEX_REPO: "/tmp/athena-repo",
+  CORTEX_HOME: "/tmp/athena-home",
+  athenaCliArgs: (args: string[]) => args,
   getEnhancedPath: () => process.env.PATH || "",
 }));
 
@@ -50,7 +50,7 @@ vi.mock("../src/main/utils", () => ({
   stripAnsi: (s: string) => s,
 }));
 
-// hermes-auth.ts only consumes `spawn` from child_process, so a minimal
+// athena-auth.ts only consumes `spawn` from child_process, so a minimal
 // replacement is enough. Both the named export and a `default` are
 // provided so the CJS↔ESM interop layer is satisfied.
 vi.mock("child_process", () => ({
@@ -59,12 +59,12 @@ vi.mock("child_process", () => ({
 }));
 
 import {
-  runHermesAuthLogin,
-  cancelHermesAuthLogin,
+  runAthenaAuthLogin,
+  cancelAthenaAuthLogin,
   isOAuthLoginProvider,
   detectDeviceCode,
   OAUTH_LOGIN_PROVIDERS,
-} from "../src/main/hermes-auth";
+} from "../src/main/athena-auth";
 
 function lastProc(): FakeProc {
   return fakeProcs[fakeProcs.length - 1];
@@ -115,7 +115,7 @@ describe("detectDeviceCode", () => {
 
   it("does not silently consume a blank line between label and value", () => {
     // A naive `\s*` for indentation would skip across the empty line and
-    // wrongly attach the wrong URL/code as the value (fathah's review on
+    // wrongly attach the wrong URL/code as the value (dr-shabana's review on
     // PR #280). Horizontal-whitespace-only stops at the linebreak.
     const blankUrlGap = [
       "  1. Open this URL in your browser:",
@@ -154,14 +154,14 @@ describe("isOAuthLoginProvider", () => {
   });
 });
 
-describe("runHermesAuthLogin", () => {
+describe("runAthenaAuthLogin", () => {
   beforeEach(() => {
     spawnSpy.mockClear();
     fakeProcs.length = 0;
   });
 
   it("refuses an unsupported provider without spawning", async () => {
-    const result = await runHermesAuthLogin("openrouter", () => {});
+    const result = await runAthenaAuthLogin("openrouter", () => {});
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/unsupported/i);
     expect(spawnSpy).not.toHaveBeenCalled();
@@ -169,7 +169,7 @@ describe("runHermesAuthLogin", () => {
 
   it("spawns `auth add <provider> --type oauth` and streams output", async () => {
     const chunks: string[] = [];
-    const promise = runHermesAuthLogin("google-gemini-cli", (c) =>
+    const promise = runAthenaAuthLogin("google-gemini-cli", (c) =>
       chunks.push(c),
     );
 
@@ -199,7 +199,7 @@ describe("runHermesAuthLogin", () => {
   });
 
   it("passes the profile flag when a named profile is given", async () => {
-    const promise = runHermesAuthLogin("xai-oauth", () => {}, "work");
+    const promise = runAthenaAuthLogin("xai-oauth", () => {}, "work");
     const args = spawnSpy.mock.calls[0][1] as string[];
     expect(args).toEqual([
       "-p",
@@ -215,7 +215,7 @@ describe("runHermesAuthLogin", () => {
   });
 
   it("reports failure on a non-zero exit code", async () => {
-    const promise = runHermesAuthLogin("qwen-oauth", () => {});
+    const promise = runAthenaAuthLogin("qwen-oauth", () => {});
     lastProc().emit("close", 1, null);
     const result = await promise;
     expect(result.success).toBe(false);
@@ -223,7 +223,7 @@ describe("runHermesAuthLogin", () => {
   });
 
   it("reports cancellation when the process is killed by signal", async () => {
-    const promise = runHermesAuthLogin("minimax-oauth", () => {});
+    const promise = runAthenaAuthLogin("minimax-oauth", () => {});
     lastProc().emit("close", null, "SIGTERM");
     const result = await promise;
     expect(result.success).toBe(false);
@@ -231,8 +231,8 @@ describe("runHermesAuthLogin", () => {
   });
 
   it("rejects a second concurrent login while one is in flight", async () => {
-    const first = runHermesAuthLogin("openai-codex", () => {});
-    const second = await runHermesAuthLogin("xai-oauth", () => {});
+    const first = runAthenaAuthLogin("openai-codex", () => {});
+    const second = await runAthenaAuthLogin("xai-oauth", () => {});
     expect(second.success).toBe(false);
     expect(second.error).toMatch(/already in progress/i);
     // Only the first login spawned a process.
@@ -242,27 +242,27 @@ describe("runHermesAuthLogin", () => {
   });
 });
 
-describe("cancelHermesAuthLogin", () => {
+describe("cancelAthenaAuthLogin", () => {
   beforeEach(() => {
     spawnSpy.mockClear();
     fakeProcs.length = 0;
   });
 
   it("returns false when no login is running", () => {
-    expect(cancelHermesAuthLogin()).toBe(false);
+    expect(cancelAthenaAuthLogin()).toBe(false);
   });
 
   it("kills the in-flight subprocess and returns true", async () => {
-    const promise = runHermesAuthLogin("openai-codex", () => {});
+    const promise = runAthenaAuthLogin("openai-codex", () => {});
     const proc = lastProc();
 
-    expect(cancelHermesAuthLogin()).toBe(true);
+    expect(cancelAthenaAuthLogin()).toBe(true);
     expect(proc.kill).toHaveBeenCalled();
 
     // Real kill would fire a close with a signal; emulate so the
     // promise settles and the single-flight slot is released.
     proc.emit("close", null, "SIGTERM");
     await promise;
-    expect(cancelHermesAuthLogin()).toBe(false);
+    expect(cancelAthenaAuthLogin()).toBe(false);
   });
 });

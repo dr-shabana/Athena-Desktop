@@ -1,12 +1,12 @@
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { randomUUID } from "crypto";
-import { HERMES_HOME } from "./installer";
+import { CORTEX_HOME } from "./installer";
 import { safeWriteFile, profilePaths } from "./utils";
 import { hostDerivedEnvKeyForUrl } from "./host-derived-env";
 import DEFAULT_MODELS from "./default-models";
 
-const MODELS_FILE = join(HERMES_HOME, "models.json");
+const MODELS_FILE = join(CORTEX_HOME, "models.json");
 
 export interface SavedModel {
   id: string;
@@ -117,7 +117,7 @@ function seedDefaults(profile?: string): SavedModel[] {
             : "";
           // Names to persist for this custom-provider key:
           //   1. CUSTOM_PROVIDER_<NAME>_KEY — the historical desktop
-          //      contract; the runtime spawn in `hermes.ts` reads it
+          //      contract; the runtime spawn in `athena.ts` reads it
           //      via the models.json baseUrl match.
           //   2. <VENDOR>_API_KEY when the URL matches a known vendor
           //      host (e.g. api.deepseek.com → DEEPSEEK_API_KEY) —
@@ -126,7 +126,7 @@ function seedDefaults(profile?: string): SavedModel[] {
           //      prefix form. Old engine (≤ v2026.5.16) doesn't have
           //      the host-derive resolver and ignores this extra var,
           //      so writing both is additive and safe.
-          // The gateway path in `hermes.ts:startGateway` ingests ALL
+          // The gateway path in `athena.ts:startGateway` ingests ALL
           // profile env vars at spawn, so the host-derived form has
           // to live in .env (not just be set at chat-time) for the
           // long-running gateway flow to work on the new engine.
@@ -139,7 +139,7 @@ function seedDefaults(profile?: string): SavedModel[] {
           // Don't shadow real OPENAI / ANTHROPIC keys via this path —
           // those belong to a separately-configured provider, not a
           // custom-provider key. The persistence guard mirrors the
-          // runtime guard in `hermes.ts`.
+          // runtime guard in `athena.ts`.
           if (
             hostKey &&
             hostKey !== "OPENAI_API_KEY" &&

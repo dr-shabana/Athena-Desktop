@@ -96,8 +96,8 @@ Naming conventions:
   `scripts/drive-*.js`, and `scripts/verify-*.js` so the
   `no-require-imports` rule doesn't fire here.
 
-- **`page.evaluate(async () => window.hermesAPI.foo())` is your friend.**
-  The renderer's `hermesAPI` is exposed via contextBridge, so the
+- **`page.evaluate(async () => window.athenaAPI.foo())` is your friend.**
+  The renderer's `athenaAPI` is exposed via contextBridge, so the
   harness can call any IPC the UI can. This is often more reliable
   than driving clicks, especially for tests of main-process state.
 

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ========================================================================
-   Hermes One Desktop — Clean Design System
+   Athena Q Desktop — Clean Design System
    Dark + Light mode, no gradients, flat design
    ======================================================================== */
 
@@ -4892,25 +4892,25 @@ body {
   }
 }
 
-.settings-hermes-info {
+.settings-athena-info {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.settings-hermes-row {
+.settings-athena-row {
   display: flex;
   gap: 24px;
   flex-wrap: wrap;
 }
 
-.settings-hermes-detail {
+.settings-athena-detail {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.settings-hermes-label {
+.settings-athena-label {
   font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
@@ -4918,18 +4918,18 @@ body {
   letter-spacing: 0.5px;
 }
 
-.settings-hermes-value {
+.settings-athena-value {
   font-size: 13px;
   color: var(--text-primary);
 }
 
-.settings-hermes-path {
+.settings-athena-path {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text-secondary);
 }
 
-.settings-hermes-update-badge {
+.settings-athena-update-badge {
   font-size: 12px;
   color: var(--warning);
   background: rgba(245, 158, 11, 0.1);
@@ -4938,23 +4938,23 @@ body {
   width: fit-content;
 }
 
-.settings-hermes-actions {
+.settings-athena-actions {
   display: flex;
   gap: 8px;
 }
 
-.settings-hermes-result {
+.settings-athena-result {
   font-size: 12px;
   padding: 6px 10px;
   border-radius: var(--radius);
 }
 
-.settings-hermes-result.success {
+.settings-athena-result.success {
   color: var(--success);
   background: var(--success-bg);
 }
 
-.settings-hermes-result.error {
+.settings-athena-result.error {
   color: var(--error);
   background: var(--error-bg);
 }
@@ -5047,7 +5047,7 @@ body {
   gap: 8px;
 }
 
-.settings-hermes-doctor {
+.settings-athena-doctor {
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.5;
@@ -10202,4 +10202,63 @@ body {
 .kanban-event-time {
   font-size: 11px;
   color: var(--text-muted);
+}
+
+/* ========================================================================
+   Athena Q — Deep indigo/navy, gold accents, owl-inspired
+   ======================================================================== */
+[data-theme="athena-q"] {
+  --bg-primary: #0F111A;
+  --bg-secondary: #131626;
+  --bg-tertiary: #1A1D35;
+  --bg-elevated: #1E2140;
+  --bg-hover: #25284A;
+  --bg-active: #2C2F54;
+  --accent: #C9A84C;
+  --accent-hover: #D4B96A;
+  --accent-subtle: rgba(201, 168, 76, 0.12);
+  --accent-text: #D4B96A;
+  --primary-yellow: #C9A84C;
+  --text-primary: #ECEFF7;
+  --text-secondary: #A8ADC6;
+  --text-muted: #6E7394;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-bright: rgba(255, 255, 255, 0.10);
+  --border-focus: #C9A84C;
+  --success: #34D399;
+  --success-bg: rgba(52, 211, 153, 0.10);
+  --error: #EF4444;
+  --error-bg: rgba(239, 68, 68, 0.10);
+  --warning: #F59E0B;
+  --warning-bg: rgba(245, 158, 11, 0.10);
+  --user-bubble: #1E2140;
+  --user-bubble-text: #ECEFF7;
+  --agent-bubble: #1A1D35;
+  --agent-bubble-text: #ECEFF7;
+  --code-bg: #0B0D16;
+  --scrollbar-thumb: #2C2F54;
+  --scrollbar-hover: #3D4170;
+  --selection: rgba(201, 168, 76, 0.25);
+  --font-main: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "Fira Code", monospace;
+  color-scheme: dark;
+}
+
+/* Athena Q — theme-specific overrides */
+[data-theme="athena-q"] .brand-logo--match-theme {
+  filter: brightness(1.2) saturate(0.9);
+}
+
+[data-theme="athena-q"] ::selection {
+  background: var(--selection);
+  color: var(--text-primary);
+}
+
+[data-theme="athena-q"] ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+[data-theme="athena-q"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
 }

@@ -38,7 +38,7 @@ export default function ProfileSwitcher({
   const rootRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(() => {
-    window.hermesAPI
+    window.athenaAPI
       .listProfiles()
       .then(setProfiles)
       .catch(() => {
@@ -87,7 +87,7 @@ export default function ProfileSwitcher({
     setOpen(false);
     if (name === activeProfile) return;
     try {
-      await window.hermesAPI.setActiveProfile(name);
+      await window.athenaAPI.setActiveProfile(name);
     } catch {
       /* still reflect the choice optimistically */
     }

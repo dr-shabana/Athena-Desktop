@@ -1,10 +1,10 @@
 {
-  "name": "hermes-desktop",
+  "name": "athena-q",
   "version": "0.5.9",
-  "description": "Hermes Agent Desktop — self-improving AI assistant",
+  "description": "Athena Q Desktop — wisdom-guided AI agent",
   "main": "./out/main/index.js",
-  "author": "fathah",
-  "homepage": "https://github.com/fathah/hermes-desktop",
+  "author": "dr-shabana",
+  "homepage": "https://github.com/dr-shabana/Athena-Desktop",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -14,7 +14,7 @@
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
-    "dev:fresh": "HERMES_HOME=$(mktemp -d -t hermes-fresh) electron-vite dev",
+    "dev:fresh": "CORTEX_HOME=$(mktemp -d -t athena-fresh) electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",

@@ -16,7 +16,7 @@ import Gateway from "./Gateway";
 describe("Gateway screen recovery controls", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    Object.defineProperty(window, "hermesAPI", {
+    Object.defineProperty(window, "athenaAPI", {
       configurable: true,
       value: {
         getEnv: vi.fn().mockResolvedValue({}),
@@ -78,10 +78,10 @@ describe("Gateway screen recovery controls", () => {
   });
 
   it("shows a gateway error when restart IPC rejects", async () => {
-    window.hermesAPI.restartGateway = vi
+    window.athenaAPI.restartGateway = vi
       .fn()
       .mockRejectedValue(new Error("restart failed"));
-    window.hermesAPI.gatewayStatus = vi
+    window.athenaAPI.gatewayStatus = vi
       .fn()
       .mockResolvedValueOnce(true)
       .mockResolvedValueOnce(true)

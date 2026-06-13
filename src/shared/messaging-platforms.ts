@@ -115,7 +115,7 @@ export const MESSAGING_TOOLSET_DEFINITIONS: MessagingToolsetDefinition[] = [
     key: "web",
     label: "Web search",
     description:
-      "Use the configured Hermes web/search backend. This still requires a working web backend in config.",
+      "Use the configured Athena web/search backend. This still requires a working web backend in config.",
   },
   {
     key: "browser",
@@ -134,7 +134,7 @@ export const MESSAGING_TOOLSET_DEFINITIONS: MessagingToolsetDefinition[] = [
     key: "file",
     label: "Files",
     description:
-      "Read and write files reachable by Hermes from the messaging platform.",
+      "Read and write files reachable by Athena from the messaging platform.",
     risk: "high",
   },
   {
@@ -162,17 +162,17 @@ export const MESSAGING_TOOLSET_DEFINITIONS: MessagingToolsetDefinition[] = [
   {
     key: "skills",
     label: "Skills",
-    description: "List, inspect, and manage Hermes skills.",
+    description: "List, inspect, and manage Athena skills.",
   },
   {
     key: "memory",
     label: "Memory",
-    description: "Read and update Hermes memory.",
+    description: "Read and update Athena memory.",
   },
   {
     key: "session_search",
     label: "Session search",
-    description: "Search previous Hermes sessions.",
+    description: "Search previous Athena sessions.",
   },
   {
     key: "clarify",
@@ -197,7 +197,7 @@ export const MESSAGING_TOOLSET_DEFINITIONS: MessagingToolsetDefinition[] = [
   {
     key: "kanban",
     label: "Kanban",
-    description: "Read and manage Hermes kanban tasks.",
+    description: "Read and manage Athena kanban tasks.",
   },
   {
     key: "delegation",
@@ -211,11 +211,11 @@ export const MESSAGING_TOOLSET_DEFINITIONS: MessagingToolsetDefinition[] = [
   },
 ];
 
-const HERMES_MESSAGING_DOCS =
-  "https://hermes-agent.nousresearch.com/docs/user-guide/messaging";
+const CORTEX_MESSAGING_DOCS =
+  "https://athena-agent.dr-shabana.com/docs/user-guide/messaging";
 
 function messagingDocs(slug: string): string {
-  return `${HERMES_MESSAGING_DOCS}/${slug}/`;
+  return `${CORTEX_MESSAGING_DOCS}/${slug}/`;
 }
 
 const ENV_DEFINITIONS: Record<string, MessagingEnvDefinition> = {
@@ -304,7 +304,7 @@ const ENV_DEFINITIONS: Record<string, MessagingEnvDefinition> = {
   MATRIX_USER_ID: {
     key: "MATRIX_USER_ID",
     prompt: "User ID",
-    description: "Matrix user ID, e.g. @hermes:example.org",
+    description: "Matrix user ID, e.g. @athena:example.org",
   },
   MATRIX_ALLOWED_USERS: {
     key: "MATRIX_ALLOWED_USERS",
@@ -612,7 +612,7 @@ const ENV_DEFINITIONS: Record<string, MessagingEnvDefinition> = {
   API_SERVER_ENABLED: {
     key: "API_SERVER_ENABLED",
     prompt: "Enable API server",
-    description: "Expose Hermes through its OpenAI-compatible HTTP API",
+    description: "Expose Athena through its OpenAI-compatible HTTP API",
     advanced: true,
   },
   API_SERVER_KEY: {
@@ -645,7 +645,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "telegram",
     name: "Telegram",
-    description: "Run Hermes from Telegram DMs, groups, and topics.",
+    description: "Run Athena from Telegram DMs, groups, and topics.",
     docs_url: messagingDocs("telegram"),
     env_vars: ["TELEGRAM_BOT_TOKEN", "TELEGRAM_ALLOWED_USERS", "TELEGRAM_PROXY"],
     required_env: ["TELEGRAM_BOT_TOKEN"],
@@ -653,7 +653,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "discord",
     name: "Discord",
-    description: "Connect Hermes to Discord DMs, channels, and threads.",
+    description: "Connect Athena to Discord DMs, channels, and threads.",
     docs_url: messagingDocs("discord"),
     env_vars: [
       "DISCORD_BOT_TOKEN",
@@ -666,7 +666,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "slack",
     name: "Slack",
-    description: "Use Hermes from Slack via Socket Mode.",
+    description: "Use Athena from Slack via Socket Mode.",
     docs_url: messagingDocs("slack"),
     env_vars: ["SLACK_BOT_TOKEN", "SLACK_APP_TOKEN"],
     required_env: ["SLACK_BOT_TOKEN", "SLACK_APP_TOKEN"],
@@ -674,7 +674,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "mattermost",
     name: "Mattermost",
-    description: "Connect Hermes to Mattermost channels and direct messages.",
+    description: "Connect Athena to Mattermost channels and direct messages.",
     docs_url: messagingDocs("mattermost"),
     env_vars: ["MATTERMOST_URL", "MATTERMOST_TOKEN", "MATTERMOST_ALLOWED_USERS"],
     required_env: ["MATTERMOST_URL", "MATTERMOST_TOKEN"],
@@ -682,7 +682,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "matrix",
     name: "Matrix",
-    description: "Use Hermes in Matrix rooms and direct messages.",
+    description: "Use Athena in Matrix rooms and direct messages.",
     docs_url: messagingDocs("matrix"),
     env_vars: [
       "MATRIX_HOMESERVER",
@@ -695,7 +695,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "whatsapp",
     name: "WhatsApp",
-    description: "Use Hermes through the bundled WhatsApp bridge with QR-based auth.",
+    description: "Use Athena through the bundled WhatsApp bridge with QR-based auth.",
     docs_url: messagingDocs("whatsapp"),
     env_vars: [
       "WHATSAPP_ENABLED",
@@ -722,7 +722,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "bluebubbles",
     name: "BlueBubbles (iMessage)",
-    description: "Use Hermes through iMessage via a BlueBubbles server.",
+    description: "Use Athena through iMessage via a BlueBubbles server.",
     docs_url: messagingDocs("bluebubbles"),
     env_vars: [
       "BLUEBUBBLES_SERVER_URL",
@@ -735,7 +735,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "homeassistant",
     name: "Home Assistant",
-    description: "Control your smart home from Hermes via Home Assistant.",
+    description: "Control your smart home from Athena via Home Assistant.",
     docs_url: messagingDocs("homeassistant"),
     env_vars: ["HASS_URL", "HASS_TOKEN"],
     required_env: ["HASS_URL", "HASS_TOKEN"],
@@ -743,7 +743,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "email",
     name: "Email",
-    description: "Talk to Hermes through an IMAP/SMTP mailbox.",
+    description: "Talk to Athena through an IMAP/SMTP mailbox.",
     docs_url: messagingDocs("email"),
     env_vars: [
       "EMAIL_ADDRESS",
@@ -776,7 +776,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "dingtalk",
     name: "DingTalk",
-    description: "Connect Hermes to DingTalk groups.",
+    description: "Connect Athena to DingTalk groups.",
     docs_url: messagingDocs("dingtalk"),
     env_vars: [
       "DINGTALK_CLIENT_ID",
@@ -789,7 +789,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "feishu",
     name: "Feishu / Lark",
-    description: "Use Hermes inside Feishu / Lark.",
+    description: "Use Athena inside Feishu / Lark.",
     docs_url: messagingDocs("feishu"),
     env_vars: [
       "FEISHU_APP_ID",
@@ -836,7 +836,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "qqbot",
     name: "QQ Bot",
-    description: "Connect Hermes to a QQ Bot from the QQ Open Platform.",
+    description: "Connect Athena to a QQ Bot from the QQ Open Platform.",
     docs_url: messagingDocs("qqbot"),
     env_vars: ["QQ_APP_ID", "QQ_CLIENT_SECRET", "QQ_ALLOWED_USERS"],
     required_env: ["QQ_APP_ID", "QQ_CLIENT_SECRET"],
@@ -844,7 +844,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "yuanbao",
     name: "Yuanbao",
-    description: "Connect Hermes to Tencent Yuanbao.",
+    description: "Connect Athena to Tencent Yuanbao.",
     docs_url: messagingDocs("yuanbao"),
     env_vars: [],
     required_env: [],
@@ -852,7 +852,7 @@ export const MESSAGING_PLATFORM_CATALOG: MessagingPlatformDefinition[] = [
   {
     id: "api_server",
     name: "API server",
-    description: "Expose Hermes as an OpenAI-compatible HTTP API for tools like Open WebUI.",
+    description: "Expose Athena as an OpenAI-compatible HTTP API for tools like Open WebUI.",
     docs_url: messagingDocs("open-webui"),
     env_vars: [
       "API_SERVER_ENABLED",

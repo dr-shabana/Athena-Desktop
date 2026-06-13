@@ -10,7 +10,7 @@ const preloadTypes = readFileSync(
 );
 
 /**
- * Extract method names from the hermesAPI object in preload/index.ts.
+ * Extract method names from the athenaAPI object in preload/index.ts.
  * Matches lines like `  methodName: (...` or `  methodName: ()`.
  */
 function extractPreloadMethods(src: string): string[] {
@@ -24,12 +24,12 @@ function extractPreloadMethods(src: string): string[] {
 }
 
 /**
- * Extract method names from the HermesAPI interface in index.d.ts.
+ * Extract method names from the AthenaAPI interface in index.d.ts.
  */
 function extractTypeMethods(src: string): string[] {
   const methods: string[] = [];
-  // Match lines inside `interface HermesAPI { ... }`
-  const interfaceMatch = src.match(/interface\s+HermesAPI\s*\{([\s\S]*?)^\}/m);
+  // Match lines inside `interface AthenaAPI { ... }`
+  const interfaceMatch = src.match(/interface\s+AthenaAPI\s*\{([\s\S]*?)^\}/m);
   if (!interfaceMatch) return [];
   const body = interfaceMatch[1];
   const re = /^\s{2}(\w+)\s*[:(]/gm;
@@ -67,10 +67,10 @@ describe("Preload API Surface", () => {
 
 describe("New APIs from v0.8/v0.9 features", () => {
   it("has backup/import APIs", () => {
-    expect(preloadMethods).toContain("runHermesBackup");
-    expect(preloadMethods).toContain("runHermesImport");
-    expect(typeMethods).toContain("runHermesBackup");
-    expect(typeMethods).toContain("runHermesImport");
+    expect(preloadMethods).toContain("runAthenaBackup");
+    expect(preloadMethods).toContain("runAthenaImport");
+    expect(typeMethods).toContain("runAthenaBackup");
+    expect(typeMethods).toContain("runAthenaImport");
   });
 
   it("has log viewer API", () => {
@@ -79,8 +79,8 @@ describe("New APIs from v0.8/v0.9 features", () => {
   });
 
   it("has debug dump API", () => {
-    expect(preloadMethods).toContain("runHermesDump");
-    expect(typeMethods).toContain("runHermesDump");
+    expect(preloadMethods).toContain("runAthenaDump");
+    expect(typeMethods).toContain("runAthenaDump");
   });
 
   it("has MCP server list API", () => {
@@ -114,17 +114,17 @@ describe("Legacy APIs preserved (backward compat)", () => {
     "checkInstall",
     "startInstall",
     "onInstallProgress",
-    // Hermes engine
-    "getHermesVersion",
-    "refreshHermesVersion",
-    "runHermesDoctor",
-    "runHermesUpdate",
+    // Athena engine
+    "getAthenaVersion",
+    "refreshAthenaVersion",
+    "runAthenaDoctor",
+    "runAthenaUpdate",
     // Config
     "getEnv",
     "setEnv",
     "getConfig",
     "setConfig",
-    "getHermesHome",
+    "getAthenaHome",
     "getModelConfig",
     "setModelConfig",
     // Chat

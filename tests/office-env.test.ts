@@ -9,29 +9,29 @@ import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-// Hermes Desktop writes the hermes-office `.env`. It used to hardcode
-// `HERMES_MODEL=hermes`, so Office ignored the user's configured model
+// Athena Q writes the athena-office `.env`. It used to hardcode
+// `CORTEX_MODEL=athena`, so Office ignored the user's configured model
 // (issue #256). The model is now passed through.
 describe("buildOfficeEnv (issue #256)", () => {
-  it("writes the configured model into HERMES_MODEL", () => {
+  it("writes the configured model into CORTEX_MODEL", () => {
     const env = buildOfficeEnv({
       port: 5179,
       url: "ws://127.0.0.1:8642",
       apiKey: "",
       model: "grok-4.3",
     });
-    expect(env).toContain("HERMES_MODEL=grok-4.3");
-    expect(env).not.toContain("HERMES_MODEL=hermes");
+    expect(env).toContain("CORTEX_MODEL=grok-4.3");
+    expect(env).not.toContain("CORTEX_MODEL=athena");
   });
 
-  it("falls back to `hermes` when no model is configured", () => {
+  it("falls back to `athena` when no model is configured", () => {
     const env = buildOfficeEnv({
       port: 5179,
       url: "ws://x",
       apiKey: "",
       model: "",
     });
-    expect(env).toContain("HERMES_MODEL=hermes");
+    expect(env).toContain("CORTEX_MODEL=athena");
   });
 
   it("carries the port and gateway URL through", () => {
@@ -46,16 +46,16 @@ describe("buildOfficeEnv (issue #256)", () => {
     expect(env).toContain("CLAW3D_GATEWAY_URL=ws://gw.test");
   });
 
-  it("threads the gateway API key into CLAW3D_GATEWAY_TOKEN and HERMES_API_KEY (#297)", () => {
+  it("threads the gateway API key into CLAW3D_GATEWAY_TOKEN and CORTEX_API_KEY (#297)", () => {
     const env = buildOfficeEnv({
       port: 5179,
       url: "ws://x",
       apiKey: "secret-key-123",
-      model: "hermes",
+      model: "athena",
     });
     expect(env).toContain("CLAW3D_GATEWAY_TOKEN=secret-key-123");
-    expect(env).toContain("CLAW3D_GATEWAY_ADAPTER_TYPE=hermes");
-    expect(env).toContain("HERMES_API_KEY=secret-key-123");
+    expect(env).toContain("CLAW3D_GATEWAY_ADAPTER_TYPE=athena");
+    expect(env).toContain("CORTEX_API_KEY=secret-key-123");
   });
 
   it("derives the adapter port from the configured WebSocket URL", () => {
@@ -63,10 +63,10 @@ describe("buildOfficeEnv (issue #256)", () => {
       port: 5179,
       url: "ws://localhost:19777",
       apiKey: "",
-      model: "hermes",
+      model: "athena",
     });
-    expect(env).toContain("HERMES_ADAPTER_PORT=19777");
-    expect(env).not.toContain("HERMES_ADAPTER_PORT=18789");
+    expect(env).toContain("CORTEX_ADAPTER_PORT=19777");
+    expect(env).not.toContain("CORTEX_ADAPTER_PORT=18789");
   });
 
   it("emits empty token/key fields when the gateway has no API_SERVER_KEY", () => {
@@ -74,11 +74,11 @@ describe("buildOfficeEnv (issue #256)", () => {
       port: 5179,
       url: "ws://x",
       apiKey: "",
-      model: "hermes",
+      model: "athena",
     });
     expect(env).toContain("CLAW3D_GATEWAY_TOKEN=");
-    expect(env).toContain("CLAW3D_GATEWAY_ADAPTER_TYPE=hermes");
-    expect(env).toContain("HERMES_API_KEY=");
+    expect(env).toContain("CLAW3D_GATEWAY_ADAPTER_TYPE=athena");
+    expect(env).toContain("CORTEX_API_KEY=");
   });
 });
 
@@ -94,22 +94,22 @@ describe("adapterPortFromWsUrl", () => {
 });
 
 describe("buildOfficeSettings", () => {
-  it("writes the modern Hermes gateway settings shape", () => {
+  it("writes the modern Athena gateway settings shape", () => {
     const settings = buildOfficeSettings(
       {},
       { url: "ws://localhost:18789", apiKey: "key-123" },
     );
 
     expect(settings).toMatchObject({
-      adapter: "hermes",
+      adapter: "athena",
       url: "ws://localhost:18789",
       token: "key-123",
       gateway: {
         url: "ws://localhost:18789",
         token: "key-123",
-        adapterType: "hermes",
+        adapterType: "athena",
         profiles: {
-          hermes: {
+          athena: {
             url: "ws://localhost:18789",
             token: "key-123",
           },
@@ -144,14 +144,14 @@ describe("buildOfficeSettings", () => {
       gateway: {
         url: "ws://localhost:18789",
         token: "key-123",
-        adapterType: "hermes",
+        adapterType: "athena",
         reconnect: true,
         profiles: {
           demo: {
             url: "ws://demo",
             token: "",
           },
-          hermes: {
+          athena: {
             url: "ws://localhost:18789",
             token: "key-123",
           },
@@ -159,7 +159,7 @@ describe("buildOfficeSettings", () => {
         lastKnownGood: {
           url: "ws://localhost:18789",
           token: "key-123",
-          adapterType: "hermes",
+          adapterType: "athena",
         },
       },
     });
@@ -185,9 +185,9 @@ describe("buildOfficeSettings", () => {
     expect(settings.gateway).toMatchObject({
       url: "ws://localhost:18789",
       token: "key-123",
-      adapterType: "hermes",
+      adapterType: "athena",
       profiles: {
-        hermes: {
+        athena: {
           url: "ws://localhost:18789",
           token: "key-123",
         },
@@ -195,7 +195,7 @@ describe("buildOfficeSettings", () => {
       lastKnownGood: {
         url: "ws://localhost:18789",
         token: "key-123",
-        adapterType: "hermes",
+        adapterType: "athena",
       },
     });
   });
@@ -210,18 +210,18 @@ describe("buildOfficeSettings", () => {
       { url: "ws://localhost:18789", apiKey: "" },
     );
 
-    expect(settings.adapter).toBe("hermes");
+    expect(settings.adapter).toBe("athena");
     expect(settings.url).toBe("ws://localhost:18789");
     expect(settings.token).toBe("");
   });
 
-  it("refreshes a stale Hermes adapter profile so Office does not reconnect to an old port", () => {
+  it("refreshes a stale Athena adapter profile so Office does not reconnect to an old port", () => {
     const settings = buildOfficeSettings(
       {
         gateway: {
-          adapterType: "hermes",
+          adapterType: "athena",
           profiles: {
-            hermes: {
+            athena: {
               url: "ws://localhost:18789",
               token: "",
             },
@@ -237,7 +237,7 @@ describe("buildOfficeSettings", () => {
 
     expect(settings.gateway).toMatchObject({
       profiles: {
-        hermes: {
+        athena: {
           url: "ws://localhost:18989",
           token: "key-123",
         },
@@ -252,7 +252,7 @@ describe("buildOfficeSettings", () => {
 
 describe("writeOfficeFileIfChanged", () => {
   it("skips identical writes so Office status polling does not churn mtimes", () => {
-    const dir = mkdtempSync(join(tmpdir(), "hermes-office-write-"));
+    const dir = mkdtempSync(join(tmpdir(), "athena-office-write-"));
     try {
       const file = join(dir, ".env");
       writeFileSync(file, "PORT=3000\n", "utf-8");
@@ -269,15 +269,15 @@ describe("writeOfficeFileIfChanged", () => {
   });
 
   it("writes when Office settings content changes", () => {
-    const dir = mkdtempSync(join(tmpdir(), "hermes-office-write-"));
+    const dir = mkdtempSync(join(tmpdir(), "athena-office-write-"));
     try {
       const file = join(dir, "settings.json");
       writeFileSync(file, "{\"adapter\":\"openclaw\"}", "utf-8");
 
-      const wrote = writeOfficeFileIfChanged(file, "{\"adapter\":\"hermes\"}");
+      const wrote = writeOfficeFileIfChanged(file, "{\"adapter\":\"athena\"}");
 
       expect(wrote).toBe(true);
-      expect(readFileSync(file, "utf-8")).toBe("{\"adapter\":\"hermes\"}");
+      expect(readFileSync(file, "utf-8")).toBe("{\"adapter\":\"athena\"}");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

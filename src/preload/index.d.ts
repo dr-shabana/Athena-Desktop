@@ -184,28 +184,28 @@ interface KanbanCreateTaskInput {
   maxRetries?: number;
 }
 
-interface HermesAPI {
+interface AthenaAPI {
   // Installation
   checkInstall: () => Promise<InstallStatus>;
   verifyInstall: () => Promise<boolean>;
   startInstall: () => Promise<{ success: boolean; error?: string }>;
   inspectInstallTarget: () => Promise<{
-    hermesHome: string;
+    athenaHome: string;
     repoPath: string;
     state: "fresh" | "update" | "replace";
   }>;
-  validateHermesHome: (dir: string) => Promise<boolean>;
-  adoptHermesHome: (dir: string) => Promise<boolean>;
+  validateAthenaHome: (dir: string) => Promise<boolean>;
+  adoptAthenaHome: (dir: string) => Promise<boolean>;
   quitApp: () => Promise<void>;
   onInstallProgress: (
     callback: (progress: InstallProgress) => void,
   ) => () => void;
 
-  // Hermes engine info
-  getHermesVersion: () => Promise<string | null>;
-  refreshHermesVersion: () => Promise<string | null>;
-  runHermesDoctor: () => Promise<string>;
-  runHermesUpdate: () => Promise<{ success: boolean; error?: string }>;
+  // Athena engine info
+  getAthenaVersion: () => Promise<string | null>;
+  refreshAthenaVersion: () => Promise<string | null>;
+  runAthenaDoctor: () => Promise<string>;
+  runAthenaUpdate: () => Promise<{ success: boolean; error?: string }>;
 
   // OpenClaw migration
   checkOpenClaw: () => Promise<{ found: boolean; path: string | null }>;
@@ -249,7 +249,7 @@ interface HermesAPI {
   getConfigFixLog: (maxEntries?: number) => Promise<ConfigFixLogEntry[]>;
   getConfig: (key: string, profile?: string) => Promise<string | null>;
   setConfig: (key: string, value: string, profile?: string) => Promise<boolean>;
-  getHermesHome: (profile?: string) => Promise<string>;
+  getAthenaHome: (profile?: string) => Promise<string>;
   getModelConfig: (
     profile?: string,
   ) => Promise<{ provider: string; model: string; baseUrl: string }>;
@@ -868,16 +868,16 @@ interface HermesAPI {
   openExternal: (url: string) => Promise<void>;
 
   // Backup / Import
-  runHermesBackup: (
+  runAthenaBackup: (
     profile?: string,
   ) => Promise<{ success: boolean; path?: string; error?: string }>;
-  runHermesImport: (
+  runAthenaImport: (
     archivePath: string,
     profile?: string,
   ) => Promise<{ success: boolean; error?: string }>;
 
   // Debug dump
-  runHermesDump: () => Promise<string>;
+  runAthenaDump: () => Promise<string>;
 
   // Memory providers
   discoverMemoryProviders: (profile?: string) => Promise<
@@ -989,6 +989,6 @@ interface HermesAPI {
 declare global {
   interface Window {
     electron: ElectronAPI;
-    hermesAPI: HermesAPI;
+    athenaAPI: AthenaAPI;
   }
 }
